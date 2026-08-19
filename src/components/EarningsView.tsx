@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import {
   Alert,
+  Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Switch,
@@ -9,13 +11,23 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { BudgetCategory, IncomeSource, IncomeType, PayFrequency, Transaction } from '../types';
+import {
+  BudgetCategory,
+  IncomeOverride,
+  IncomeSource,
+  IncomeType,
+  PayFrequency,
+  PayPeriod,
+  Transaction,
+} from '../types';
+import { usePersistentState } from '../hooks/usePersistentState';
 import {
   formatLocalDate,
   getAllPayPeriodsInRange,
   getIncomeForMonth,
   getMonthRange,
   getPeriodAmount,
+  getSourcePayDateSet,
   monthName,
   parseLocalDate,
 } from '../utils/earnings';
@@ -25,7 +37,13 @@ interface EarningsViewProps {
   transactions: Transaction[];
   categories: BudgetCategory[];
   sources: IncomeSource[];
-  onSourcesChange: (sources: IncomeSource[]) => void;
+  onSourcesChange: React.Dispatch<React.SetStateAction<IncomeSource[]>>;
+}
+
+interface DisplayPeriod extends PayPeriod {
+  effectiveAmount: number;
+  isRealized: boolean;
+  isManual: boolean;
 }
 
 const FREQUENCIES: { key: PayFrequency; label: string }[] = [
@@ -54,6 +72,43 @@ function transactionDateKey(t: Transaction): string {
   return formatLocalDate(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
 }
 
+function overrideKey(sourceId: string, payDate: string): string {
+  return `${sourceId}:${payDate}`;
+}
+
+function webAlert(title: string, message: string) {
+  if (Platform.OS === 'web') {
+    (globalThis as any).alert(`${title}\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+}
+
+function webConfirm(
+  title: string,
+  message: string,
+  onConfirm: () => void,
+  onCancel: () => void,
+  confirmText = 'OK',
+  cancelText = 'Cancel',
+) {
+  if (Platform.OS === 'web') {
+    const confirmed = (globalThis as any).confirm(
+      `${title}\n${message}\n\nClick OK to ${confirmText.toLowerCase()}. Click Cancel to ${cancelText.toLowerCase()}.`,
+    );
+    if (confirmed) {
+      onConfirm();
+    } else {
+      onCancel();
+    }
+  } else {
+    Alert.alert(title, message, [
+      { text: cancelText, style: 'cancel', onPress: onCancel },
+      { text: confirmText, style: 'destructive', onPress: onConfirm },
+    ]);
+  }
+}
+
 export default function EarningsView({
   transactions,
   sources,
@@ -63,6 +118,8 @@ export default function EarningsView({
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [showForm, setShowForm] = useState(false);
+  const [editingSourceId, setEditingSourceId] = useState<string | null>(null);
+  const [overrides, setOverrides] = usePersistentState<IncomeOverride[]>('incomeOverrides', []);
 
   const [name, setName] = useState('');
   const [incomeType, setIncomeType] = useState<IncomeType>('salary');
@@ -74,14 +131,20 @@ export default function EarningsView({
   const [semiDay1, setSemiDay1] = useState('1');
   const [semiDay2, setSemiDay2] = useState('15');
 
+  const [editPeriod, setEditPeriod] = useState<DisplayPeriod | null>(null);
+  const [editAmount, setEditAmount] = useState('');
+
   const { start, end } = useMemo(() => getMonthRange(year, month), [year, month]);
 
   const activeSources = useMemo(() => sources.filter((s) => s.active), [sources]);
 
-  const projectedPeriods = useMemo(
-    () => getAllPayPeriodsInRange(activeSources, start, end),
-    [activeSources, start, end],
-  );
+  const overrideMap = useMemo(() => {
+    const map = new Map<string, IncomeOverride>();
+    for (const override of overrides) {
+      map.set(overrideKey(override.sourceId, override.payDate), override);
+    }
+    return map;
+  }, [overrides]);
 
   const incomeTransactionDates = useMemo(() => {
     const map = new Map<string, number>();
@@ -93,20 +156,180 @@ export default function EarningsView({
     return map;
   }, [transactions]);
 
+  const projectedPeriods = useMemo<DisplayPeriod[]>(() => {
+    const base = getAllPayPeriodsInRange(activeSources, start, end);
+    return base.map((period) => {
+      const realizedAmount = incomeTransactionDates.get(period.payDate);
+      const override = overrideMap.get(overrideKey(period.sourceId, period.payDate));
+      const isRealized = realizedAmount !== undefined;
+      const effectiveAmount = isRealized ? realizedAmount : (override?.amount ?? period.amount);
+      return {
+        ...period,
+        effectiveAmount,
+        isRealized,
+        isManual: !isRealized && override !== undefined,
+      };
+    });
+  }, [activeSources, start, end, overrideMap, incomeTransactionDates]);
+
   const { realIncome, remainingProjected, totalExpected } = useMemo(() => {
     const realIncome = getIncomeForMonth(transactions, year, month);
-    let remainingProjected = 0;
-    for (const period of projectedPeriods) {
-      if (!incomeTransactionDates.has(period.payDate)) {
-        remainingProjected += period.amount;
+    const remainingProjected = projectedPeriods.reduce(
+      (sum, p) => (p.isRealized ? sum : sum + p.effectiveAmount),
+      0,
+    );
+    return { realIncome, remainingProjected, totalExpected: realIncome + remainingProjected };
+  }, [transactions, projectedPeriods, year, month]);
+
+  const resetForm = () => {
+    setName('');
+    setIncomeType('salary');
+    setAmount('');
+    setHoursPerPeriod('');
+    setFrequency('bi-weekly');
+    setStartDate(todayInput());
+    setMonthlyDay('1');
+    setSemiDay1('1');
+    setSemiDay2('15');
+    setEditingSourceId(null);
+  };
+
+  const prefillForm = (source: IncomeSource) => {
+    setName(source.name);
+    setIncomeType(source.incomeType);
+    setAmount(source.amount.toString());
+    setHoursPerPeriod(source.hoursPerPeriod?.toString() ?? '');
+    setFrequency(source.frequency);
+    setStartDate(source.startDate);
+    setMonthlyDay(source.monthlyDay.toString());
+    setSemiDay1(source.semiMonthlyDays[0].toString());
+    setSemiDay2(source.semiMonthlyDays[1].toString());
+  };
+
+  const toggleForm = () => {
+    if (showForm) {
+      setShowForm(false);
+      resetForm();
+    } else {
+      setShowForm(true);
+      resetForm();
+    }
+  };
+
+  const handleEditSource = (source: IncomeSource) => {
+    setEditingSourceId(source.id);
+    prefillForm(source);
+    setShowForm(true);
+  };
+
+  const buildSource = (id: string): IncomeSource | null => {
+    const numericAmount = Number.parseFloat(amount);
+    if (!name.trim() || Number.isNaN(numericAmount) || numericAmount <= 0) {
+      webAlert('Invalid source', 'Please enter a name and a positive amount.');
+      return null;
+    }
+
+    let numericHours: number | undefined;
+    if (incomeType === 'hourly') {
+      numericHours = Number.parseFloat(hoursPerPeriod);
+      if (Number.isNaN(numericHours) || numericHours <= 0) {
+        webAlert('Invalid hours', 'Please enter a positive number of hours per period.');
+        return null;
       }
     }
-    let totalExpected = realIncome;
-    for (const period of projectedPeriods) {
-      totalExpected += period.amount;
+
+    const parsedStart = parseLocalDate(startDate);
+    if (Number.isNaN(parsedStart.getTime())) {
+      webAlert('Invalid date', 'Use YYYY-MM-DD format for the start date.');
+      return null;
     }
-    return { realIncome, remainingProjected, totalExpected };
-  }, [transactions, projectedPeriods, year, month, incomeTransactionDates]);
+
+    const parsedMonthlyDay = Number.parseInt(monthlyDay, 10) || 1;
+    const parsedSemiDay1 = Number.parseInt(semiDay1, 10) || 1;
+    const parsedSemiDay2 = Number.parseInt(semiDay2, 10) || 15;
+
+    return {
+      id,
+      name: name.trim(),
+      incomeType,
+      amount: numericAmount,
+      hoursPerPeriod: numericHours,
+      frequency,
+      startDate: formatLocalDate(parsedStart),
+      monthlyDay: Math.max(1, Math.min(31, parsedMonthlyDay)),
+      semiMonthlyDays: [
+        Math.max(1, Math.min(31, parsedSemiDay1)),
+        Math.max(1, Math.min(31, parsedSemiDay2)),
+      ] as [number, number],
+      active: true,
+    };
+  };
+
+  const cleanOverridesForSource = (
+    sourceId: string,
+    keepManual: boolean,
+    source?: IncomeSource,
+  ) => {
+    const validDates = source ? getSourcePayDateSet(source) : new Set<string>();
+    setOverrides((prev) =>
+      prev.filter((o) => {
+        if (o.sourceId !== sourceId) return true;
+        if (!keepManual) return false;
+        return validDates.has(o.payDate);
+      }),
+    );
+  };
+
+  const finalizeSave = (sourceId: string, keepManual: boolean, source: IncomeSource) => {
+    onSourcesChange((prev) => prev.map((s) => (s.id === sourceId ? source : s)));
+    cleanOverridesForSource(sourceId, keepManual, source);
+    setShowForm(false);
+    resetForm();
+  };
+
+  const handleSaveSource = () => {
+    const sourceId = editingSourceId ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const source = buildSource(sourceId);
+    if (!source) return;
+
+    if (editingSourceId) {
+      const hasManualOverrides = overrides.some((o) => o.sourceId === editingSourceId);
+      if (hasManualOverrides) {
+        webConfirm(
+          'Keep manual projections?',
+          'This source has paychecks with manually edited amounts. Keep those manual amounts, or recalculate all projected paychecks from the new settings?',
+          () => finalizeSave(editingSourceId, true, source),
+          () => finalizeSave(editingSourceId, false, source),
+          'Keep manual',
+          'Recalculate all',
+        );
+      } else {
+        finalizeSave(editingSourceId, true, source);
+      }
+    } else {
+      onSourcesChange((prev) => [...prev, source]);
+      setShowForm(false);
+      resetForm();
+    }
+  };
+
+  const toggleActive = (id: string) => {
+    onSourcesChange(sources.map((s) => (s.id === id ? { ...s, active: !s.active } : s)));
+  };
+
+  const handleDelete = (id: string) => {
+    webConfirm(
+      'Delete income source?',
+      'This cannot be undone.',
+      () => {
+        onSourcesChange(sources.filter((s) => s.id !== id));
+        setOverrides((prev) => prev.filter((o) => o.sourceId !== id));
+      },
+      () => {},
+      'Delete',
+      'Cancel',
+    );
+  };
 
   const handlePrevMonth = () => {
     if (month === 1) {
@@ -126,78 +349,48 @@ export default function EarningsView({
     }
   };
 
-  const handleResetForm = () => {
-    setName('');
-    setIncomeType('salary');
-    setAmount('');
-    setHoursPerPeriod('');
-    setFrequency('bi-weekly');
-    setStartDate(todayInput());
-    setMonthlyDay('1');
-    setSemiDay1('1');
-    setSemiDay2('15');
+  const openPaycheckEdit = (period: DisplayPeriod) => {
+    if (period.isRealized) return;
+    setEditPeriod(period);
+    setEditAmount(period.effectiveAmount.toString());
   };
 
-  const handleAddSource = () => {
-    const numericAmount = Number.parseFloat(amount);
-    if (!name.trim() || Number.isNaN(numericAmount) || numericAmount <= 0) {
-      Alert.alert('Invalid source', 'Please enter a name and a positive amount.');
+  const closePaycheckEdit = () => {
+    setEditPeriod(null);
+    setEditAmount('');
+  };
+
+  const handleSaveOverride = () => {
+    if (!editPeriod) return;
+    const numericAmount = Number.parseFloat(editAmount);
+    if (Number.isNaN(numericAmount) || numericAmount < 0) {
+      webAlert('Invalid amount', 'Please enter a positive amount.');
       return;
     }
 
-    let numericHours: number | undefined;
-    if (incomeType === 'hourly') {
-      numericHours = Number.parseFloat(hoursPerPeriod);
-      if (Number.isNaN(numericHours) || numericHours <= 0) {
-        Alert.alert('Invalid hours', 'Please enter a positive number of hours per period.');
-        return;
+    setOverrides((prev) => {
+      const existing = prev.findIndex(
+        (o) => o.sourceId === editPeriod.sourceId && o.payDate === editPeriod.payDate,
+      );
+      const updated: IncomeOverride = {
+        sourceId: editPeriod.sourceId,
+        payDate: editPeriod.payDate,
+        amount: numericAmount,
+      };
+      if (existing >= 0) {
+        return prev.map((o, i) => (i === existing ? updated : o));
       }
-    }
-
-    const parsedStart = parseLocalDate(startDate);
-    if (Number.isNaN(parsedStart.getTime())) {
-      Alert.alert('Invalid date', 'Use YYYY-MM-DD format for the start date.');
-      return;
-    }
-
-    const parsedMonthlyDay = Number.parseInt(monthlyDay, 10) || 1;
-    const parsedSemiDay1 = Number.parseInt(semiDay1, 10) || 1;
-    const parsedSemiDay2 = Number.parseInt(semiDay2, 10) || 15;
-
-    const source: IncomeSource = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      name: name.trim(),
-      incomeType,
-      amount: numericAmount,
-      hoursPerPeriod: numericHours,
-      frequency,
-      startDate: formatLocalDate(parsedStart),
-      monthlyDay: Math.max(1, Math.min(31, parsedMonthlyDay)),
-      semiMonthlyDays: [
-        Math.max(1, Math.min(31, parsedSemiDay1)),
-        Math.max(1, Math.min(31, parsedSemiDay2)),
-      ] as [number, number],
-      active: true,
-    };
-
-    onSourcesChange([...sources, source]);
-    handleResetForm();
-    setShowForm(false);
+      return [...prev, updated];
+    });
+    closePaycheckEdit();
   };
 
-  const toggleActive = (id: string) => {
-    onSourcesChange(sources.map((s) => (s.id === id ? { ...s, active: !s.active } : s)));
-  };
-
-  const handleDelete = (id: string) => {
-    Alert.alert('Delete income source?', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => onSourcesChange(sources.filter((s) => s.id !== id)),
-      },
-    ]);
+  const handleRemoveOverride = () => {
+    if (!editPeriod) return;
+    setOverrides((prev) =>
+      prev.filter((o) => !(o.sourceId === editPeriod.sourceId && o.payDate === editPeriod.payDate)),
+    );
+    closePaycheckEdit();
   };
 
   const renderFrequencyFields = () => {
@@ -280,7 +473,7 @@ export default function EarningsView({
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Income sources</Text>
-          <TouchableOpacity style={styles.smallButton} onPress={() => setShowForm((s) => !s)}>
+          <TouchableOpacity style={styles.smallButton} onPress={toggleForm}>
             <Text style={styles.smallButtonText}>{showForm ? 'Cancel' : 'Add source'}</Text>
           </TouchableOpacity>
         </View>
@@ -359,8 +552,10 @@ export default function EarningsView({
               placeholder="YYYY-MM-DD"
             />
 
-            <TouchableOpacity style={styles.button} onPress={handleAddSource}>
-              <Text style={styles.buttonText}>Save income source</Text>
+            <TouchableOpacity style={styles.button} onPress={handleSaveSource}>
+              <Text style={styles.buttonText}>
+                {editingSourceId ? 'Update income source' : 'Save income source'}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -382,12 +577,14 @@ export default function EarningsView({
                 </View>
                 <View style={styles.sourceActions}>
                   <Switch value={source.active} onValueChange={() => toggleActive(source.id)} />
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleDelete(source.id)}
-                  >
-                    <Text style={styles.deleteButtonText}>Delete</Text>
-                  </TouchableOpacity>
+                  <View style={styles.sourceActionButtons}>
+                    <TouchableOpacity onPress={() => handleEditSource(source)}>
+                      <Text style={styles.editButtonText}>Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleDelete(source.id)}>
+                      <Text style={styles.deleteButtonText}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
               <Text style={styles.sourceDetail}>Started {displayDate(source.startDate)}</Text>
@@ -403,26 +600,80 @@ export default function EarningsView({
             <Text style={styles.emptyText}>No projected paychecks for this month.</Text>
           </View>
         ) : (
-          projectedPeriods.map((period) => {
-            const realized = incomeTransactionDates.get(period.payDate);
-            return (
-              <View key={`${period.sourceId}-${period.payDate}`} style={styles.paycheckCard}>
-                <View style={styles.paycheckRow}>
-                  <Text style={styles.paycheckSource}>{period.sourceName}</Text>
-                  <Text style={styles.paycheckAmount}>
-                    {realized ? formatCurrency(realized) : formatCurrency(period.amount)}
-                  </Text>
-                </View>
-                <Text style={styles.paycheckDate}>
-                  Pay {displayDate(period.payDate)} · Period {displayDate(period.periodStart)}–
-                  {displayDate(period.periodEnd)}
-                </Text>
-                {realized && <Text style={styles.realizedTag}>Realized income recorded</Text>}
+          projectedPeriods.map((period) => (
+            <TouchableOpacity
+              key={`${period.sourceId}-${period.payDate}`}
+              style={styles.paycheckCard}
+              onPress={() => openPaycheckEdit(period)}
+              disabled={period.isRealized}
+            >
+              <View style={styles.paycheckRow}>
+                <Text style={styles.paycheckSource}>{period.sourceName}</Text>
+                <Text style={styles.paycheckAmount}>{formatCurrency(period.effectiveAmount)}</Text>
               </View>
-            );
-          })
+              <Text style={styles.paycheckDate}>
+                Pay {displayDate(period.payDate)} · Period {displayDate(period.periodStart)}–
+                {displayDate(period.periodEnd)}
+              </Text>
+              {period.isRealized ? (
+                <Text style={styles.realizedTag}>Realized income recorded</Text>
+              ) : period.isManual ? (
+                <Text style={styles.manualTag}>Manual estimate · tap to edit</Text>
+              ) : (
+                <Text style={styles.projectedTag}>Tap to estimate</Text>
+              )}
+            </TouchableOpacity>
+          ))
         )}
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent
+        visible={editPeriod !== null}
+        onRequestClose={closePaycheckEdit}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit paycheck estimate</Text>
+            <Text style={styles.modalSubtitle}>
+              {editPeriod
+                ? `${editPeriod.sourceName} · Pay ${displayDate(editPeriod.payDate)}`
+                : ''}
+            </Text>
+
+            <Text style={styles.label}>Estimated amount</Text>
+            <TextInput
+              style={styles.field}
+              value={editAmount}
+              onChangeText={setEditAmount}
+              keyboardType="decimal-pad"
+              placeholder="0.00"
+              autoFocus
+            />
+
+            <TouchableOpacity style={styles.button} onPress={handleSaveOverride}>
+              <Text style={styles.buttonText}>Save estimate</Text>
+            </TouchableOpacity>
+
+            {editPeriod?.isManual && (
+              <TouchableOpacity
+                style={[styles.button, styles.dangerButton]}
+                onPress={handleRemoveOverride}
+              >
+                <Text style={styles.buttonText}>Revert to source estimate</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={[styles.button, styles.secondaryButton]}
+              onPress={closePaycheckEdit}
+            >
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -574,6 +825,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  secondaryButton: {
+    backgroundColor: '#6c757d',
+  },
+  dangerButton: {
+    backgroundColor: '#dc3545',
+  },
   buttonText: {
     color: '#fff',
     fontWeight: '600',
@@ -620,8 +877,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  deleteButton: {
+  sourceActionButtons: {
+    flexDirection: 'row',
+    gap: 12,
     marginTop: 4,
+  },
+  editButtonText: {
+    color: '#007bff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   deleteButtonText: {
     color: '#dc3545',
@@ -659,5 +923,43 @@ const styles = StyleSheet.create({
     color: '#28a745',
     marginTop: 4,
     fontWeight: '600',
+  },
+  manualTag: {
+    fontSize: 11,
+    color: '#007bff',
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  projectedTag: {
+    fontSize: 11,
+    color: '#6c757d',
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    padding: 16,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#6c757d',
+    marginBottom: 16,
   },
 });

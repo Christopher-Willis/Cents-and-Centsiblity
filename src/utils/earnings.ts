@@ -185,6 +185,19 @@ export function getAllPayPeriodsInRange(
   return periods.sort((a, b) => a.payDate.localeCompare(b.payDate));
 }
 
+function addYears(date: Date, years: number): Date {
+  const next = new Date(date);
+  next.setFullYear(next.getFullYear() + years);
+  return next;
+}
+
+export function getSourcePayDateSet(source: IncomeSource): Set<string> {
+  const startDate = parseLocalDate(source.startDate);
+  const endDate = addYears(startDate, 5);
+  const periods = getPayPeriodsInRange(source, startDate, endDate);
+  return new Set(periods.map((p) => p.payDate));
+}
+
 export function getIncomeForMonth(
   transactions: { amount: number; type: string; date: string }[],
   year: number,

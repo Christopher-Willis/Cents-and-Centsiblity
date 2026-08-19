@@ -43,4 +43,10 @@ export interface PayPeriod {
   amount: number;
 }
 
+export interface IncomeOverride {
+  sourceId: string;
+  payDate: string;
+  amount: number;
+}
+
 export type Tab = 'dashboard' | 'transactions' | 'budget' | 'earnings' | 'import';
