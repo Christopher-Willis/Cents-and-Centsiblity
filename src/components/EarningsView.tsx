@@ -287,14 +287,35 @@ export default function EarningsView({
     resetForm();
   };
 
+  const payCycleChanged = (original: IncomeSource | undefined, updated: IncomeSource): boolean => {
+    if (!original) return true;
+    return (
+      original.frequency !== updated.frequency ||
+      original.startDate !== updated.startDate ||
+      original.monthlyDay !== updated.monthlyDay ||
+      original.semiMonthlyDays[0] !== updated.semiMonthlyDays[0] ||
+      original.semiMonthlyDays[1] !== updated.semiMonthlyDays[1]
+    );
+  };
+
   const handleSaveSource = () => {
     const sourceId = editingSourceId ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const source = buildSource(sourceId);
     if (!source) return;
 
     if (editingSourceId) {
+      const originalSource = sources.find((s) => s.id === editingSourceId);
       const hasManualOverrides = overrides.some((o) => o.sourceId === editingSourceId);
-      if (hasManualOverrides) {
+      if (hasManualOverrides && payCycleChanged(originalSource, source)) {
+        webConfirm(
+          'Pay cycle changed',
+          'Changing the pay cycle will reset all manual paycheck estimates for this source.',
+          () => finalizeSave(editingSourceId, false, source),
+          () => {},
+          'Continue',
+          'Cancel',
+        );
+      } else if (hasManualOverrides) {
         webConfirm(
           'Keep manual projections?',
           'This source has paychecks with manually edited amounts. Keep those manual amounts, or recalculate all projected paychecks from the new settings?',
