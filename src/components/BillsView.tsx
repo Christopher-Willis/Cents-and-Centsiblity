@@ -69,22 +69,22 @@ function getStatus(bill: Bill, dueDate: string) {
   const paid = bill.paidDate ? parseLocalDate(bill.paidDate) : undefined;
 
   if (paid && paid.getFullYear() === due.getFullYear() && paid.getMonth() === due.getMonth()) {
-    return { label: 'Paid', color: '#28a745' };
+    return { label: 'Paid', color: '#13d97f' };
   }
 
   const lateDateString = getBillLateDate(bill, dueDate);
   if (lateDateString) {
     const late = parseLocalDate(lateDateString);
     if (today > late) {
-      return { label: 'Late', color: '#dc3545' };
+      return { label: 'Late', color: '#ff7d84' };
     }
   }
 
   if (today > due) {
-    return { label: 'Due', color: '#fd7e14' };
+    return { label: 'Due', color: '#ff7d84' };
   }
 
-  return { label: 'Upcoming', color: '#6c757d' };
+  return { label: 'Upcoming', color: '#8b939f' };
 }
 
 export default function BillsView({ bills, categories, onBillsChange }: BillsViewProps) {
@@ -344,28 +344,29 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
   const getCategoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? id;
 
   const renderForm = () => (
-    <View className="bg-white rounded-xl p-4 mb-4 border border-[#e9ecef]">
-      <Text className="text-[13px] font-semibold text-[#495057] mb-1">Bill name</Text>
+    <View className="bg-surface rounded-xl p-4 mb-4 border border-white/[0.06]">
+      <Text className="text-[13px] font-semibold text-ink-muted mb-1">Bill name</Text>
       <TextInput
-        className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+        className="border border-white/10 rounded-lg p-3 mb-3 bg-surface2 text-ink"
         value={name}
         onChangeText={setName}
         placeholder="Rent, electricity, etc."
+        placeholderTextColor="#8b939f"
       />
 
-      <Text className="text-[13px] font-semibold text-[#495057] mb-1">Budget group</Text>
+      <Text className="text-[13px] font-semibold text-ink-muted mb-1">Budget group</Text>
       <View className="flex-row flex-wrap gap-2 mb-3">
         {expenseCategories.map((category) => (
           <TouchableOpacity
             key={category.id}
-            className={`border border-[#dee2e6] rounded-2xl py-1.5 px-3 ${
-              categoryId === category.id ? 'bg-[#007bff] border-[#007bff]' : ''
+            className={`rounded-2xl py-1.5 px-3 border ${
+              categoryId === category.id ? 'bg-mint border-mint' : 'bg-surface2 border-white/10'
             }`}
             onPress={() => setCategoryId(category.id)}
           >
             <Text
-              className={`text-[#495057] text-[13px] ${
-                categoryId === category.id ? 'text-white font-semibold' : ''
+              className={`text-[13px] ${
+                categoryId === category.id ? 'text-midnight font-semibold' : 'text-ink-muted'
               }`}
             >
               {category.name}
@@ -374,96 +375,109 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
         ))}
       </View>
 
-      <Text className="text-[13px] font-semibold text-[#495057] mb-1">Planned amount</Text>
+      <Text className="text-[13px] font-semibold text-ink-muted mb-1">Planned amount</Text>
       <TextInput
-        className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+        className="border border-white/10 rounded-lg p-3 mb-3 bg-surface2 text-ink"
         value={plannedAmount}
         onChangeText={setPlannedAmount}
         placeholder="0.00"
+        placeholderTextColor="#8b939f"
         keyboardType="decimal-pad"
       />
 
       <View className="flex-row justify-between items-center mb-3">
-        <Text className="text-[13px] font-semibold text-[#495057] mb-1">Recurring monthly</Text>
-        <Switch value={recurring} onValueChange={setRecurring} />
+        <Text className="text-[13px] font-semibold text-ink-muted mb-1">Recurring monthly</Text>
+        <Switch
+          value={recurring}
+          onValueChange={setRecurring}
+          trackColor={{ false: '#20242c', true: '#13d97f' }}
+          ios_backgroundColor="#20242c"
+        />
       </View>
 
       {recurring ? (
         <>
-          <Text className="text-[13px] font-semibold text-[#495057] mb-1">Due day of month</Text>
+          <Text className="text-[13px] font-semibold text-ink-muted mb-1">Due day of month</Text>
           <TextInput
-            className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+            className="border border-white/10 rounded-lg p-3 mb-3 bg-surface2 text-ink"
             value={dueDay}
             onChangeText={setDueDay}
             placeholder="1-31"
+            placeholderTextColor="#8b939f"
             keyboardType="number-pad"
           />
 
-          <Text className="text-[13px] font-semibold text-[#495057] mb-1">End date (optional)</Text>
+          <Text className="text-[13px] font-semibold text-ink-muted mb-1">End date (optional)</Text>
           <TextInput
-            className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+            className="border border-white/10 rounded-lg p-3 mb-3 bg-surface2 text-ink"
             value={endDate}
             onChangeText={setEndDate}
             placeholder="YYYY-MM-DD"
+            placeholderTextColor="#8b939f"
           />
 
-          <Text className="text-[13px] font-semibold text-[#495057] mb-1">
+          <Text className="text-[13px] font-semibold text-ink-muted mb-1">
             Late day offset (optional)
           </Text>
           <TextInput
-            className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+            className="border border-white/10 rounded-lg p-3 mb-3 bg-surface2 text-ink"
             value={lateDay}
             onChangeText={setLateDay}
             placeholder="Days after due date"
+            placeholderTextColor="#8b939f"
             keyboardType="number-pad"
           />
         </>
       ) : (
         <>
-          <Text className="text-[13px] font-semibold text-[#495057] mb-1">Due date</Text>
+          <Text className="text-[13px] font-semibold text-ink-muted mb-1">Due date</Text>
           <TextInput
-            className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+            className="border border-white/10 rounded-lg p-3 mb-3 bg-surface2 text-ink"
             value={dueDate}
             onChangeText={setDueDate}
             placeholder="YYYY-MM-DD"
+            placeholderTextColor="#8b939f"
           />
 
-          <Text className="text-[13px] font-semibold text-[#495057] mb-1">
+          <Text className="text-[13px] font-semibold text-ink-muted mb-1">
             Late date (optional)
           </Text>
           <TextInput
-            className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+            className="border border-white/10 rounded-lg p-3 mb-3 bg-surface2 text-ink"
             value={lateDate}
             onChangeText={setLateDate}
             placeholder="YYYY-MM-DD"
+            placeholderTextColor="#8b939f"
           />
         </>
       )}
 
-      <Text className="text-[13px] font-semibold text-[#495057] mb-1">
+      <Text className="text-[13px] font-semibold text-ink-muted mb-1">
         Actual amount (optional)
       </Text>
       <TextInput
-        className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+        className="border border-white/10 rounded-lg p-3 mb-3 bg-surface2 text-ink"
         value={actualAmount}
         onChangeText={setActualAmount}
         placeholder="0.00"
+        placeholderTextColor="#8b939f"
         keyboardType="decimal-pad"
       />
 
-      <Text className="text-[13px] font-semibold text-[#495057] mb-1">Paid date (optional)</Text>
+      <Text className="text-[13px] font-semibold text-ink-muted mb-1">Paid date (optional)</Text>
       <TextInput
-        className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+        className="border border-white/10 rounded-lg p-3 mb-3 bg-surface2 text-ink"
         value={paidDate}
         onChangeText={setPaidDate}
         placeholder="YYYY-MM-DD"
+        placeholderTextColor="#8b939f"
       />
 
       <TouchableOpacity
-        className="bg-[#007bff] rounded-lg py-3 px-4 items-center mb-4"
+        className="bg-mint rounded-lg py-3 px-4 items-center mb-4"
         onPress={handleSave}
       >
-        <Text className="text-white font-semibold">
+        <Text className="text-midnight font-semibold">
           {editingBillId ? 'Update bill' : 'Save bill'}
         </Text>
       </TouchableOpacity>
@@ -471,42 +485,42 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
   );
 
   return (
-    <ScrollView className="flex-1 bg-[#f8f9fa]" contentContainerClassName="p-4 pb-8">
-      <Text className="text-2xl font-bold mb-4">Bills</Text>
+    <ScrollView className="flex-1 bg-midnight" contentContainerClassName="p-4 pb-32">
+      <Text className="text-2xl font-bold mb-4 text-ink">Bills</Text>
 
       <View className="flex-row justify-between items-center mb-4">
         <TouchableOpacity className="p-2" onPress={handlePrevMonth}>
-          <Text className="text-lg font-bold text-[#007bff]">&lt;</Text>
+          <Text className="text-lg font-bold text-mint">&lt;</Text>
         </TouchableOpacity>
-        <Text className="text-lg font-semibold">{monthName(year, month)}</Text>
+        <Text className="text-lg font-semibold text-ink">{monthName(year, month)}</Text>
         <TouchableOpacity className="p-2" onPress={handleNextMonth}>
-          <Text className="text-lg font-bold text-[#007bff]">&gt;</Text>
+          <Text className="text-lg font-bold text-mint">&gt;</Text>
         </TouchableOpacity>
       </View>
 
       <View className="flex-row gap-3 mb-4">
-        <View className="flex-1 bg-white rounded-xl p-3 border border-[#e9ecef] items-center">
-          <Text className="text-xs text-[#6c757d] mb-1">Planned</Text>
-          <Text className="text-lg font-bold">{formatCurrency(totals.planned)}</Text>
+        <View className="flex-1 bg-surface rounded-xl p-3 border border-white/[0.06] items-center">
+          <Text className="text-xs text-ink-muted mb-1">Planned</Text>
+          <Text className="font-display text-lg text-ink">{formatCurrency(totals.planned)}</Text>
         </View>
-        <View className="flex-1 bg-white rounded-xl p-3 border border-[#e9ecef] items-center">
-          <Text className="text-xs text-[#6c757d] mb-1">Paid</Text>
-          <Text className="text-lg font-bold">{formatCurrency(totals.paid)}</Text>
+        <View className="flex-1 bg-surface rounded-xl p-3 border border-white/[0.06] items-center">
+          <Text className="text-xs text-ink-muted mb-1">Paid</Text>
+          <Text className="font-display text-lg text-ink">{formatCurrency(totals.paid)}</Text>
         </View>
       </View>
 
       <TouchableOpacity
-        className="bg-[#007bff] rounded-lg py-3 px-4 items-center mb-4"
+        className="bg-mint rounded-lg py-3 px-4 items-center mb-4"
         onPress={toggleForm}
       >
-        <Text className="text-white font-semibold">{showForm ? 'Cancel' : 'Add bill'}</Text>
+        <Text className="text-midnight font-semibold">{showForm ? 'Cancel' : 'Add bill'}</Text>
       </TouchableOpacity>
 
       {showForm && renderForm()}
 
-      <Text className="text-lg font-semibold mb-3">Upcoming bills</Text>
+      <Text className="text-lg font-semibold mb-3 text-ink">Upcoming bills</Text>
       {monthBills.length === 0 ? (
-        <Text className="text-[#6c757d] text-center mt-4">No bills for this month.</Text>
+        <Text className="text-ink-muted text-center mt-4">No bills for this month.</Text>
       ) : (
         monthBills.map(({ bill, dueDate }) => {
           const status = getStatus(bill, dueDate);
@@ -514,12 +528,12 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
           return (
             <View
               key={`${bill.id}-${dueDate}`}
-              className="bg-white rounded-xl p-4 mb-3 border border-[#e9ecef]"
+              className="bg-surface rounded-xl p-4 mb-3 border border-white/[0.06]"
             >
               <View className="flex-row justify-between items-start mb-2">
                 <View className="flex-1 mr-3">
-                  <Text className="text-base font-semibold flex-wrap">{bill.name}</Text>
-                  <Text className="text-xs text-[#6c757d] mt-0.5">
+                  <Text className="text-base font-semibold flex-wrap text-ink">{bill.name}</Text>
+                  <Text className="text-xs text-ink-muted mt-0.5">
                     {getCategoryName(bill.categoryId)} • Due{' '}
                     {formatLocalDate(parseLocalDate(dueDate))}
                     {lateDateString
@@ -541,11 +555,11 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
               </View>
 
               <View className="flex-row gap-4 mb-3">
-                <Text className="text-sm text-[#495057]">
+                <Text className="text-sm text-ink-muted">
                   Planned: {formatCurrency(bill.plannedAmount)}
                 </Text>
                 {bill.actualAmount !== undefined && (
-                  <Text className="text-sm text-[#495057]">
+                  <Text className="text-sm text-ink-muted">
                     Actual: {formatCurrency(bill.actualAmount)}
                   </Text>
                 )}
@@ -554,25 +568,29 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
               <View className="flex-row gap-2">
                 <TouchableOpacity
                   className={`rounded-md py-1.5 px-2.5 ${
-                    status.label === 'Paid' ? 'bg-[#6c757d]' : 'bg-[#28a745]'
+                    status.label === 'Paid' ? 'bg-surface2' : 'bg-mint'
                   }`}
                   onPress={() => handleMarkPaid(bill, dueDate)}
                 >
-                  <Text className="text-xs font-semibold text-white">
+                  <Text
+                    className={`text-xs font-semibold ${
+                      status.label === 'Paid' ? 'text-ink' : 'text-midnight'
+                    }`}
+                  >
                     {status.label === 'Paid' ? 'Mark unpaid' : 'Mark paid'}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="rounded-md py-1.5 px-2.5 bg-[#e9ecef]"
+                  className="rounded-md py-1.5 px-2.5 bg-surface2"
                   onPress={() => handleEdit(bill)}
                 >
-                  <Text className="text-[#495057] text-xs font-semibold">Edit</Text>
+                  <Text className="text-ink-muted text-xs font-semibold">Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="rounded-md py-1.5 px-2.5 bg-[#f8d7da]"
+                  className="rounded-md py-1.5 px-2.5 bg-coral/15"
                   onPress={() => handleDelete(bill.id)}
                 >
-                  <Text className="text-[#dc3545] text-xs font-semibold">Delete</Text>
+                  <Text className="text-coral text-xs font-semibold">Delete</Text>
                 </TouchableOpacity>
               </View>
             </View>
