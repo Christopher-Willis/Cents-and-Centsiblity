@@ -49,4 +49,17 @@ export interface IncomeOverride {
   amount: number;
 }
 
-export type Tab = 'dashboard' | 'transactions' | 'budget' | 'earnings' | 'import';
+export interface Bill {
+  id: string;
+  name: string;
+  categoryId: string;
+  plannedAmount: number;
+  dueDate: string;
+  lateDate?: string;
+  actualAmount?: number;
+  paidDate?: string;
+  transactionId?: string;
+  active: boolean;
+}
+
+export type Tab = 'dashboard' | 'transactions' | 'budget' | 'bills' | 'earnings' | 'import';

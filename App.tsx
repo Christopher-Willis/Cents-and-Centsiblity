@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import BillsView from './src/components/BillsView';
 import BudgetView from './src/components/BudgetView';
 import Dashboard from './src/components/Dashboard';
 import EarningsView from './src/components/EarningsView';
@@ -9,12 +10,13 @@ import ImportView from './src/components/ImportView';
 import TransactionList from './src/components/TransactionList';
 import { DEFAULT_CATEGORIES } from './src/data/categories';
 import { usePersistentState } from './src/hooks/usePersistentState';
-import { IncomeSource, Tab, Transaction, BudgetCategory } from './src/types';
+import { Bill, BudgetCategory, IncomeSource, Tab, Transaction } from './src/types';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'dashboard', label: 'Home' },
   { key: 'transactions', label: 'Transactions' },
   { key: 'budget', label: 'Budget' },
+  { key: 'bills', label: 'Bills' },
   { key: 'earnings', label: 'Earnings' },
   { key: 'import', label: 'Import' },
 ];
@@ -22,7 +24,8 @@ const TABS: { key: Tab; label: string }[] = [
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [transactions, setTransactions] = usePersistentState<Transaction[]>('transactions', []);
-  const [categories] = usePersistentState<BudgetCategory[]>('categories', DEFAULT_CATEGORIES);
+  const [categories, setCategories] = usePersistentState<BudgetCategory[]>('categories', DEFAULT_CATEGORIES);
+  const [bills, setBills] = usePersistentState<Bill[]>('bills', []);
   const [incomeSources, setIncomeSources] = usePersistentState<IncomeSource[]>('incomeSources', []);
 
   const handleImport = (newTransactions: Transaction[]) => {
@@ -43,7 +46,16 @@ export default function App() {
       case 'transactions':
         return <TransactionList transactions={transactions} categories={categories} />;
       case 'budget':
-        return <BudgetView transactions={transactions} categories={categories} />;
+        return (
+          <BudgetView
+            transactions={transactions}
+            categories={categories}
+            bills={bills}
+            onCategoriesChange={setCategories}
+          />
+        );
+      case 'bills':
+        return <BillsView bills={bills} categories={categories} onBillsChange={setBills} />;
       case 'earnings':
         return (
           <EarningsView
