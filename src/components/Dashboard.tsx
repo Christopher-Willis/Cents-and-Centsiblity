@@ -1,8 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Circle, Svg } from 'react-native-svg';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { BudgetCategory, Transaction } from '../types';
 import { formatCurrency, formatDate } from '../utils/csv';
+import Button from './ui/Button';
+import Card from './ui/Card';
+import EmptyState from './ui/EmptyState';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -57,23 +60,23 @@ export default function Dashboard({ transactions, categories, onImportPress }: D
       </View>
 
       <View className="mt-4 flex-row gap-2.5">
-        <View className="flex-1 rounded-2xl border border-white/[0.06] bg-surface p-4">
+        <Card className="flex-1 p-4">
           <View className="mb-2 flex-row items-center gap-1.5">
             <Ionicons name="arrow-up-outline" size={13} color="#13d97f" />
             <Text className="text-[11.5px] font-semibold text-ink-muted">Income</Text>
           </View>
           <Text className="font-display text-[19px] text-ink">{formatCurrency(income)}</Text>
-        </View>
-        <View className="flex-1 rounded-2xl border border-white/[0.06] bg-surface p-4">
+        </Card>
+        <Card className="flex-1 p-4">
           <View className="mb-2 flex-row items-center gap-1.5">
             <Ionicons name="arrow-down-outline" size={13} color="#ff7d84" />
             <Text className="text-[11.5px] font-semibold text-ink-muted">Expenses</Text>
           </View>
           <Text className="font-display text-[19px] text-ink">{formatCurrency(expenses)}</Text>
-        </View>
+        </Card>
       </View>
 
-      <View className="mt-2.5 flex-row items-center gap-4 rounded-2xl border border-white/[0.06] bg-surface p-4">
+      <Card className="mt-2.5 flex-row items-center gap-4 p-4">
         <View className="-rotate-90">
           <Svg width={62} height={62} viewBox="0 0 62 62">
             <Circle
@@ -104,24 +107,27 @@ export default function Dashboard({ transactions, categories, onImportPress }: D
             {Math.round(remainingPct * 100)}% of plan left
           </Text>
         </View>
-      </View>
+      </Card>
 
       <Text className="mb-3 mt-6 text-[15px] font-bold text-ink">Recent</Text>
 
       {recent.length === 0 ? (
-        <View className="items-center rounded-2xl border border-white/[0.06] bg-surface p-6">
-          <Text className="mb-3 text-ink-muted">No transactions yet.</Text>
-          <TouchableOpacity className="rounded-full bg-mint px-4 py-2.5" onPress={onImportPress}>
-            <Text className="font-semibold text-midnight">Import transactions</Text>
-          </TouchableOpacity>
-        </View>
+        <Card className="p-6">
+          <EmptyState
+            title="No transactions yet."
+            action={
+              <Button
+                label="Import transactions"
+                onPress={onImportPress}
+                className="mt-3 px-4 py-2.5"
+              />
+            }
+          />
+        </Card>
       ) : (
         <View className="gap-1.5">
           {recent.map((t) => (
-            <View
-              key={t.id}
-              className="flex-row items-center gap-3 rounded-2xl border border-white/[0.06] bg-surface p-3"
-            >
+            <Card key={t.id} className="flex-row items-center gap-3 p-3">
               <View
                 className={
                   t.type === 'income'
@@ -149,7 +155,7 @@ export default function Dashboard({ transactions, categories, onImportPress }: D
                 {t.type === 'income' ? '+' : '-'}
                 {formatCurrency(t.amount)}
               </Text>
-            </View>
+            </Card>
           ))}
         </View>
       )}

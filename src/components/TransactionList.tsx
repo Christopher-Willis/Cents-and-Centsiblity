@@ -1,6 +1,9 @@
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { BudgetCategory, Transaction } from '../types';
 import { formatCurrency, formatDate } from '../utils/csv';
+import Card from './ui/Card';
+import EmptyState from './ui/EmptyState';
+import ScreenScroll from './ui/ScreenScroll';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -15,21 +18,17 @@ export default function TransactionList({ transactions, categories }: Transactio
   const getCategoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? id;
 
   return (
-    <ScrollView className="flex-1 bg-midnight" contentContainerClassName="p-4 pb-32">
-      <Text className="text-2xl font-bold mb-4 text-ink">Transactions</Text>
+    <ScreenScroll title="Transactions">
       {sorted.length === 0 ? (
-        <View className="rounded-xl border border-white/[0.06] bg-surface p-8 items-center">
-          <Text className="text-base text-ink-muted">No transactions imported yet.</Text>
-          <Text className="text-[13px] text-ink-muted mt-2 text-center">
-            Use the Import tab to add transactions manually.
-          </Text>
-        </View>
+        <Card className="p-8">
+          <EmptyState
+            title="No transactions imported yet."
+            description="Use the Import tab to add transactions manually."
+          />
+        </Card>
       ) : (
         sorted.map((t) => (
-          <View
-            key={t.id}
-            className="rounded-xl border border-white/[0.06] bg-surface p-3.5 mb-2 flex-row justify-between items-center"
-          >
+          <Card key={t.id} className="mb-2 flex-row items-center justify-between p-3.5">
             <View className="flex-1 mr-3">
               <Text className="text-[15px] font-semibold text-ink">{t.description}</Text>
               <Text className="text-xs text-ink-muted mt-0.5">
@@ -44,9 +43,9 @@ export default function TransactionList({ transactions, categories }: Transactio
               {t.type === 'income' ? '+' : '-'}
               {formatCurrency(t.amount)}
             </Text>
-          </View>
+          </Card>
         ))
       )}
-    </ScrollView>
+    </ScreenScroll>
   );
 }
