@@ -1,9 +1,10 @@
 import './global.css';
 
+import { BricolageGrotesque_700Bold, useFonts } from '@expo-google-fonts/bricolage-grotesque';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import BillsView from './src/components/BillsView';
 import BudgetView from './src/components/BudgetView';
@@ -30,6 +31,7 @@ const TABS: { key: Tab; label: string; icon: string; activeIcon: string }[] = [
 ];
 
 export default function App() {
+  const [fontsLoaded] = useFonts({ BricolageGrotesque_700Bold });
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [transactions, setTransactions] = usePersistentState<Transaction[]>('transactions', []);
   const [categories, setCategories] = usePersistentState<BudgetCategory[]>(
@@ -83,36 +85,42 @@ export default function App() {
     }
   };
 
+  if (!fontsLoaded) {
+    return <View className="flex-1 bg-midnight" />;
+  }
+
   return (
     <SafeAreaProvider>
-      <SafeAreaView className="flex-1 bg-[#f8f9fa]">
+      <SafeAreaView className="flex-1 bg-midnight">
         <View className="flex-1">{renderContent()}</View>
 
-        <View className="flex-row bg-white border-t border-t-[#dee2e6] pb-2 pt-2">
+        <View className="absolute bottom-5 left-5 right-5 flex-row items-center rounded-full border border-white/10 bg-surface/95 p-2 shadow-lg">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.key;
             return (
               <TouchableOpacity
                 key={tab.key}
-                className={`flex-1 items-center py-1.5 ${isActive ? 'border-t-2 border-t-[#007bff]' : ''}`}
                 onPress={() => setActiveTab(tab.key)}
+                className="flex-1 items-center justify-center py-2.5"
               >
-                <Ionicons
-                  name={(isActive ? tab.activeIcon : tab.icon) as any}
-                  size={22}
-                  color={isActive ? '#007bff' : '#6c757d'}
-                  className="mb-0.5"
-                />
-                <Text
-                  className={`text-[10px] ${isActive ? 'text-[#007bff] font-semibold' : 'text-[#6c757d]'}`}
+                <View
+                  className={
+                    isActive
+                      ? 'items-center justify-center rounded-full bg-mint/15 px-3.5 py-1.5'
+                      : 'items-center justify-center px-3.5 py-1.5'
+                  }
                 >
-                  {tab.label}
-                </Text>
+                  <Ionicons
+                    name={(isActive ? tab.activeIcon : tab.icon) as any}
+                    size={19}
+                    color={isActive ? '#13d97f' : '#8b939f'}
+                  />
+                </View>
               </TouchableOpacity>
             );
           })}
         </View>
-        <StatusBar style="auto" />
+        <StatusBar style="light" />
       </SafeAreaView>
     </SafeAreaProvider>
   );

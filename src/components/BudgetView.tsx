@@ -153,34 +153,36 @@ export default function BudgetView({
   };
 
   return (
-    <ScrollView className="flex-1 bg-[#f8f9fa]" contentContainerClassName="p-4 pb-8">
-      <Text className="text-2xl font-bold mb-4">Budget</Text>
+    <ScrollView className="flex-1 bg-midnight" contentContainerClassName="p-4 pb-32">
+      <Text className="text-2xl font-bold mb-4 text-ink">Budget</Text>
 
-      <View className="bg-white rounded-xl p-4 mb-3 border border-[#e9ecef]">
-        <Text className="text-lg font-semibold mb-3">Add budget group</Text>
+      <View className="rounded-2xl border border-white/[0.06] bg-surface p-4 mb-3">
+        <Text className="text-lg font-semibold mb-3 text-ink">Add budget group</Text>
         <TextInput
-          className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+          className="bg-surface2 rounded-xl border border-white/10 px-3 py-2.5 text-ink mb-3"
           value={newName}
           onChangeText={setNewName}
           placeholder="Group name (e.g. Utilities)"
+          placeholderTextColor="#8b939f"
         />
         <TextInput
-          className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+          className="bg-surface2 rounded-xl border border-white/10 px-3 py-2.5 text-ink mb-3"
           value={newBudget}
           onChangeText={setNewBudget}
           placeholder="Monthly budget limit"
           keyboardType="decimal-pad"
+          placeholderTextColor="#8b939f"
         />
         <TouchableOpacity
-          className="bg-[#007bff] rounded-lg py-3 px-4 items-center"
+          className="rounded-full bg-mint py-3 px-4 items-center"
           onPress={handleAddCategory}
         >
-          <Text className="text-white font-semibold">Add group</Text>
+          <Text className="text-midnight font-semibold">Add group</Text>
         </TouchableOpacity>
       </View>
 
       {expenseCategories.length === 0 ? (
-        <Text className="text-[#6c757d] text-center mt-8">No budget groups yet.</Text>
+        <Text className="text-ink-muted text-center mt-8">No budget groups yet.</Text>
       ) : (
         expenseCategories.map((category) => {
           const planned = getPlanned(category.id);
@@ -198,61 +200,63 @@ export default function BudgetView({
           return (
             <View
               key={category.id}
-              className="bg-white rounded-xl p-4 mb-3 border border-[#e9ecef]"
+              className="rounded-2xl border border-white/[0.06] bg-surface p-4 mb-3"
             >
               {isEditing ? (
                 <>
                   <TextInput
-                    className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+                    className="bg-surface2 rounded-xl border border-white/10 px-3 py-2.5 text-ink mb-3"
                     value={editName}
                     onChangeText={setEditName}
+                    placeholderTextColor="#8b939f"
                   />
                   <TextInput
-                    className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+                    className="bg-surface2 rounded-xl border border-white/10 px-3 py-2.5 text-ink mb-3"
                     value={editBudget}
                     onChangeText={setEditBudget}
                     keyboardType="decimal-pad"
+                    placeholderTextColor="#8b939f"
                   />
                   <View className="flex-row gap-2">
                     <TouchableOpacity
-                      className="bg-[#007bff] rounded-md py-2 px-3 items-center flex-1"
+                      className="rounded-full bg-mint py-2 px-3 items-center flex-1"
                       onPress={() => saveEdit(category.id)}
                     >
-                      <Text className="text-white font-semibold">Save</Text>
+                      <Text className="text-midnight font-semibold">Save</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      className="bg-[#e9ecef] rounded-md py-2 px-3 items-center flex-1"
+                      className="rounded-full bg-surface2 py-2 px-3 items-center flex-1"
                       onPress={cancelEdit}
                     >
-                      <Text className="text-[#495057] font-semibold">Cancel</Text>
+                      <Text className="text-ink-muted font-semibold">Cancel</Text>
                     </TouchableOpacity>
                   </View>
                 </>
               ) : (
                 <>
                   <View className="flex-row justify-between items-center mb-2">
-                    <Text className="text-base font-semibold flex-1">{category.name}</Text>
+                    <Text className="text-base font-semibold flex-1 text-ink">{category.name}</Text>
                     <View className="flex-row gap-3">
                       <TouchableOpacity className="p-1" onPress={() => startEdit(category)}>
-                        <Text className="text-[13px] text-[#007bff] font-semibold">Edit</Text>
+                        <Text className="text-[13px] text-mint font-semibold">Edit</Text>
                       </TouchableOpacity>
                       <TouchableOpacity className="p-1" onPress={() => handleDelete(category.id)}>
-                        <Text className="text-[13px] font-semibold text-[#dc3545]">Delete</Text>
+                        <Text className="text-[13px] font-semibold text-coral">Delete</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
 
                   <View className="flex-row justify-between mb-2">
-                    <Text className="text-xs text-[#6c757d]">{formatCurrency(actual)} spent</Text>
-                    <Text className="text-xs text-[#6c757d]">
+                    <Text className="text-xs text-ink-muted">{formatCurrency(actual)} spent</Text>
+                    <Text className="text-xs text-ink-muted">
                       {formatCurrency(planned)} planned
                     </Text>
-                    <Text className="text-xs text-[#6c757d]">
+                    <Text className="text-xs text-ink-muted">
                       {formatCurrency(category.budget)} budget
                     </Text>
                   </View>
 
-                  <View className="h-2.5 bg-[#e9ecef] rounded-[5px] overflow-hidden">
+                  <View className="h-2.5 bg-surface2 rounded-[5px] overflow-hidden">
                     <View className="flex-row h-full rounded-[5px] overflow-hidden">
                       <View
                         className="h-full"
@@ -273,7 +277,7 @@ export default function BudgetView({
 
                   <Text
                     className={`mt-2 text-[13px] ${
-                      afterPlanned < 0 ? 'text-[#dc3545] font-semibold' : 'text-[#495057]'
+                      afterPlanned < 0 ? 'text-coral font-semibold' : 'text-ink-muted'
                     }`}
                   >
                     {afterPlanned >= 0
