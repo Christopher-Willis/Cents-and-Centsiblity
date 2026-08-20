@@ -54,7 +54,11 @@ export interface Bill {
   name: string;
   categoryId: string;
   plannedAmount: number;
-  dueDate: string;
+  recurring: boolean;
+  dueDay?: number;
+  dueDate?: string;
+  endDate?: string;
+  lateDay?: number;
   lateDate?: string;
   actualAmount?: number;
   paidDate?: string;
