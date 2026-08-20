@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -12,13 +13,13 @@ import { DEFAULT_CATEGORIES } from './src/data/categories';
 import { usePersistentState } from './src/hooks/usePersistentState';
 import { Bill, BudgetCategory, IncomeSource, Tab, Transaction } from './src/types';
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'dashboard', label: 'Home' },
-  { key: 'transactions', label: 'Transactions' },
-  { key: 'budget', label: 'Budget' },
-  { key: 'bills', label: 'Bills' },
-  { key: 'earnings', label: 'Earnings' },
-  { key: 'import', label: 'Import' },
+const TABS: { key: Tab; label: string; icon: string; activeIcon: string }[] = [
+  { key: 'dashboard', label: 'Home', icon: 'home-outline', activeIcon: 'home' },
+  { key: 'transactions', label: 'Activity', icon: 'swap-horizontal-outline', activeIcon: 'swap-horizontal' },
+  { key: 'budget', label: 'Budget', icon: 'wallet-outline', activeIcon: 'wallet' },
+  { key: 'bills', label: 'Bills', icon: 'receipt-outline', activeIcon: 'receipt' },
+  { key: 'earnings', label: 'Earn', icon: 'cash-outline', activeIcon: 'cash' },
+  { key: 'import', label: 'Import', icon: 'download-outline', activeIcon: 'download' },
 ];
 
 export default function App() {
@@ -78,17 +79,24 @@ export default function App() {
         <View style={styles.content}>{renderContent()}</View>
 
         <View style={styles.tabBar}>
-          {TABS.map((tab) => (
-            <TouchableOpacity
-              key={tab.key}
-              style={[styles.tab, activeTab === tab.key && styles.activeTab]}
-              onPress={() => setActiveTab(tab.key)}
-            >
-              <Text style={[styles.tabText, activeTab === tab.key && styles.activeTabText]}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                style={[styles.tab, isActive && styles.activeTab]}
+                onPress={() => setActiveTab(tab.key)}
+              >
+                <Ionicons
+                  name={(isActive ? tab.activeIcon : tab.icon) as any}
+                  size={22}
+                  color={isActive ? '#007bff' : '#6c757d'}
+                  style={styles.tabIcon}
+                />
+                <Text style={[styles.tabText, isActive && styles.activeTabText]}>{tab.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
         <StatusBar style="auto" />
       </SafeAreaView>
@@ -115,14 +123,17 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   activeTab: {
     borderTopWidth: 2,
     borderTopColor: '#007bff',
   },
+  tabIcon: {
+    marginBottom: 2,
+  },
   tabText: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#6c757d',
   },
   activeTabText: {
