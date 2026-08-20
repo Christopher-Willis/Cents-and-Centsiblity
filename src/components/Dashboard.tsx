@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
 import { BudgetCategory, Transaction } from '../types';
 import { formatCurrency, formatDate } from '../utils/csv';
 
@@ -36,57 +36,64 @@ export default function Dashboard({ transactions, categories, onImportPress }: D
     .slice(0, 5);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Cents & Centsibility</Text>
+    <ScrollView className="flex-1 bg-[#f8f9fa]" contentContainerClassName="p-4 pb-8">
+      <Text className="text-2xl font-bold mb-4">Cents & Centsibility</Text>
 
-      <View style={styles.summary}>
-        <View style={[styles.card, styles.balanceCard]}>
-          <Text style={styles.label}>Monthly Balance</Text>
-          <Text style={[styles.amount, balance >= 0 ? styles.positive : styles.negative]}>
+      <View className="gap-3">
+        <View className="bg-white rounded-xl p-4 border border-[#e9ecef] flex-1 items-center">
+          <Text className="text-xs text-[#6c757d] mb-1">Monthly Balance</Text>
+          <Text
+            className={`text-[22px] font-bold ${balance >= 0 ? 'text-[#28a745]' : 'text-[#dc3545]'}`}
+          >
             {formatCurrency(balance)}
           </Text>
         </View>
 
-        <View style={styles.row}>
-          <View style={[styles.card, styles.halfCard]}>
-            <Text style={styles.label}>Income</Text>
-            <Text style={[styles.amount, styles.positive]}>{formatCurrency(income)}</Text>
+        <View className="flex-row gap-3">
+          <View className="bg-white rounded-xl p-4 border border-[#e9ecef] flex-1 items-center">
+            <Text className="text-xs text-[#6c757d] mb-1">Income</Text>
+            <Text className="text-[22px] font-bold text-[#28a745]">{formatCurrency(income)}</Text>
           </View>
-          <View style={[styles.card, styles.halfCard]}>
-            <Text style={styles.label}>Expenses</Text>
-            <Text style={[styles.amount, styles.negative]}>{formatCurrency(expenses)}</Text>
+          <View className="bg-white rounded-xl p-4 border border-[#e9ecef] flex-1 items-center">
+            <Text className="text-xs text-[#6c757d] mb-1">Expenses</Text>
+            <Text className="text-[22px] font-bold text-[#dc3545]">{formatCurrency(expenses)}</Text>
           </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.label}>Budget Remaining</Text>
-          <Text style={[styles.amount, remaining >= 0 ? styles.positive : styles.negative]}>
+        <View className="bg-white rounded-xl p-4 border border-[#e9ecef] flex-1">
+          <Text className="text-xs text-[#6c757d] mb-1">Budget Remaining</Text>
+          <Text
+            className={`text-[22px] font-bold ${remaining >= 0 ? 'text-[#28a745]' : 'text-[#dc3545]'}`}
+          >
             {formatCurrency(remaining)}
           </Text>
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Transactions</Text>
+      <View className="mt-6">
+        <Text className="text-lg font-semibold mb-3">Recent Transactions</Text>
         {recent.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>No transactions yet.</Text>
-            <TouchableOpacity style={styles.button} onPress={onImportPress}>
-              <Text style={styles.buttonText}>Import transactions</Text>
+          <View className="bg-white rounded-xl p-6 items-center">
+            <Text className="text-[#6c757d] mb-3">No transactions yet.</Text>
+            <TouchableOpacity
+              className="bg-[#007bff] rounded-lg py-2.5 px-4"
+              onPress={onImportPress}
+            >
+              <Text className="text-white font-semibold">Import transactions</Text>
             </TouchableOpacity>
           </View>
         ) : (
           recent.map((t) => (
-            <View key={t.id} style={styles.transaction}>
-              <View style={styles.transactionInfo}>
-                <Text style={styles.transactionDescription}>{t.description}</Text>
-                <Text style={styles.transactionDate}>{formatDate(t.date)}</Text>
+            <View
+              key={t.id}
+              className="bg-white rounded-xl p-3 mb-2 flex-row justify-between items-center"
+            >
+              <View className="flex-1 mr-2">
+                <Text className="text-sm font-semibold">{t.description}</Text>
+                <Text className="text-xs text-[#6c757d] mt-0.5">{formatDate(t.date)}</Text>
               </View>
               <Text
-                style={[
-                  styles.transactionAmount,
-                  t.type === 'income' ? styles.positive : styles.negative,
-                ]}
+                className={`text-sm font-bold ${t.type === 'income' ? 'text-[#28a745]' : 'text-[#dc3545]'}`}
               >
                 {t.type === 'income' ? '+' : '-'}
                 {formatCurrency(t.amount)}
@@ -98,109 +105,3 @@ export default function Dashboard({ transactions, categories, onImportPress }: D
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  summary: {
-    gap: 12,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    flex: 1,
-  },
-  balanceCard: {
-    alignItems: 'center',
-  },
-  halfCard: {
-    alignItems: 'center',
-  },
-  label: {
-    fontSize: 12,
-    color: '#6c757d',
-    marginBottom: 4,
-  },
-  amount: {
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  positive: {
-    color: '#28a745',
-  },
-  negative: {
-    color: '#dc3545',
-  },
-  section: {
-    marginTop: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  empty: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 24,
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: '#6c757d',
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#007bff',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  transaction: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  transactionInfo: {
-    flex: 1,
-    marginRight: 8,
-  },
-  transactionDescription: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  transactionDate: {
-    fontSize: 12,
-    color: '#6c757d',
-    marginTop: 2,
-  },
-  transactionAmount: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-});

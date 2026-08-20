@@ -4,7 +4,6 @@ import {
   Modal,
   Platform,
   ScrollView,
-  StyleSheet,
   Switch,
   Text,
   TextInput,
@@ -417,10 +416,10 @@ export default function EarningsView({
   const renderFrequencyFields = () => {
     if (frequency === 'monthly') {
       return (
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Pay day of month</Text>
+        <View className="mb-3">
+          <Text className="text-[13px] font-semibold text-[#495057] mb-1">Pay day of month</Text>
           <TextInput
-            style={styles.field}
+            className="border border-[#dee2e6] rounded-lg p-3 bg-[#f8f9fa]"
             value={monthlyDay}
             onChangeText={setMonthlyDay}
             keyboardType="number-pad"
@@ -432,21 +431,21 @@ export default function EarningsView({
 
     if (frequency === 'semi-monthly') {
       return (
-        <View style={styles.row}>
-          <View style={[styles.fieldGroup, styles.flex]}>
-            <Text style={styles.label}>First pay day</Text>
+        <View className="flex-row gap-3">
+          <View className="mb-3 flex-1">
+            <Text className="text-[13px] font-semibold text-[#495057] mb-1">First pay day</Text>
             <TextInput
-              style={styles.field}
+              className="border border-[#dee2e6] rounded-lg p-3 bg-[#f8f9fa]"
               value={semiDay1}
               onChangeText={setSemiDay1}
               keyboardType="number-pad"
               placeholder="1"
             />
           </View>
-          <View style={[styles.fieldGroup, styles.flex]}>
-            <Text style={styles.label}>Second pay day</Text>
+          <View className="mb-3 flex-1">
+            <Text className="text-[13px] font-semibold text-[#495057] mb-1">Second pay day</Text>
             <TextInput
-              style={styles.field}
+              className="border border-[#dee2e6] rounded-lg p-3 bg-[#f8f9fa]"
               value={semiDay2}
               onChangeText={setSemiDay2}
               keyboardType="number-pad"
@@ -461,74 +460,82 @@ export default function EarningsView({
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Earnings</Text>
+    <ScrollView className="flex-1 bg-[#f8f9fa]" contentContainerClassName="p-4 pb-8">
+      <Text className="text-2xl font-bold mb-4">Earnings</Text>
 
-      <View style={styles.monthSelector}>
-        <TouchableOpacity style={styles.monthButton} onPress={handlePrevMonth}>
-          <Text style={styles.monthButtonText}>{'<'}</Text>
+      <View className="flex-row justify-between items-center bg-white rounded-xl p-3 mb-4 border border-[#e9ecef]">
+        <TouchableOpacity className="px-4 py-2" onPress={handlePrevMonth}>
+          <Text className="text-xl font-bold text-[#007bff]">{'<'}</Text>
         </TouchableOpacity>
-        <Text style={styles.monthText}>{monthName(year, month)}</Text>
-        <TouchableOpacity style={styles.monthButton} onPress={handleNextMonth}>
-          <Text style={styles.monthButtonText}>{'>'}</Text>
+        <Text className="text-lg font-semibold">{monthName(year, month)}</Text>
+        <TouchableOpacity className="px-4 py-2" onPress={handleNextMonth}>
+          <Text className="text-xl font-bold text-[#007bff]">{'>'}</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.summaryRow}>
-        <View style={[styles.card, styles.summaryCard]}>
-          <Text style={styles.label}>Real income</Text>
-          <Text style={styles.summaryAmount}>{formatCurrency(realIncome)}</Text>
+      <View className="flex-row gap-3 mb-4">
+        <View className="bg-white rounded-xl p-4 border border-[#e9ecef] flex-1 items-center">
+          <Text className="text-[13px] font-semibold text-[#495057] mb-1">Real income</Text>
+          <Text className="text-lg font-bold mt-1">{formatCurrency(realIncome)}</Text>
         </View>
-        <View style={[styles.card, styles.summaryCard]}>
-          <Text style={styles.label}>Projected</Text>
-          <Text style={styles.summaryAmount}>{formatCurrency(remainingProjected)}</Text>
+        <View className="bg-white rounded-xl p-4 border border-[#e9ecef] flex-1 items-center">
+          <Text className="text-[13px] font-semibold text-[#495057] mb-1">Projected</Text>
+          <Text className="text-lg font-bold mt-1">{formatCurrency(remainingProjected)}</Text>
         </View>
-        <View style={[styles.card, styles.summaryCard]}>
-          <Text style={styles.label}>Total expected</Text>
-          <Text style={[styles.summaryAmount, styles.positive]}>
+        <View className="bg-white rounded-xl p-4 border border-[#e9ecef] flex-1 items-center">
+          <Text className="text-[13px] font-semibold text-[#495057] mb-1">Total expected</Text>
+          <Text className="text-lg font-bold mt-1 text-[#28a745]">
             {formatCurrency(totalExpected)}
           </Text>
         </View>
       </View>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Income sources</Text>
-          <TouchableOpacity style={styles.smallButton} onPress={toggleForm}>
-            <Text style={styles.smallButtonText}>{showForm ? 'Cancel' : 'Add source'}</Text>
+      <View className="mt-2 mb-4">
+        <View className="flex-row justify-between items-center mb-3">
+          <Text className="text-lg font-semibold">Income sources</Text>
+          <TouchableOpacity className="bg-[#007bff] rounded-lg py-2 px-3" onPress={toggleForm}>
+            <Text className="text-white font-semibold text-[13px]">
+              {showForm ? 'Cancel' : 'Add source'}
+            </Text>
           </TouchableOpacity>
         </View>
 
         {showForm && (
-          <View style={[styles.card, styles.formCard]}>
-            <Text style={styles.label}>Source name</Text>
+          <View className="bg-white rounded-xl p-4 border border-[#e9ecef] mb-4">
+            <Text className="text-[13px] font-semibold text-[#495057] mb-1">Source name</Text>
             <TextInput
-              style={styles.field}
+              className="border border-[#dee2e6] rounded-lg p-3 bg-[#f8f9fa]"
               value={name}
               onChangeText={setName}
               placeholder="Day job, freelance, etc."
             />
 
-            <Text style={styles.label}>Income type</Text>
-            <View style={styles.typeRow}>
+            <Text className="text-[13px] font-semibold text-[#495057] mb-1">Income type</Text>
+            <View className="flex-row flex-wrap gap-2 mb-3">
               {INCOME_TYPES.map((type) => (
                 <TouchableOpacity
                   key={type.key}
-                  style={[styles.typeButton, incomeType === type.key && styles.typeActive]}
+                  className={`border rounded-lg py-2.5 px-3 ${incomeType === type.key ? 'bg-[#007bff] border-[#007bff]' : 'border-[#dee2e6]'}`}
                   onPress={() => setIncomeType(type.key)}
                 >
-                  <Text style={incomeType === type.key ? styles.typeActiveText : styles.typeText}>
+                  <Text
+                    className={
+                      incomeType === type.key
+                        ? 'text-white font-semibold text-[13px]'
+                        : 'text-[#495057] text-[13px]'
+                    }
+                  >
                     {type.label}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <Text style={styles.label}>
+            <Text className="text-[13px] font-semibold text-[#495057] mb-1">
               {incomeType === 'hourly' ? 'Hourly rate' : 'Amount per paycheck'}
             </Text>
             <TextInput
-              style={styles.field}
+              className="border border-[#dee2e6] rounded-lg p-3 bg-[#f8f9fa]"
               value={amount}
               onChangeText={setAmount}
               keyboardType="decimal-pad"
@@ -537,9 +544,11 @@ export default function EarningsView({
 
             {incomeType === 'hourly' && (
               <>
-                <Text style={styles.label}>Expected hours per period</Text>
+                <Text className="text-[13px] font-semibold text-[#495057] mb-1">
+                  Expected hours per period
+                </Text>
                 <TextInput
-                  style={styles.field}
+                  className="border border-[#dee2e6] rounded-lg p-3 bg-[#f8f9fa]"
                   value={hoursPerPeriod}
                   onChangeText={setHoursPerPeriod}
                   keyboardType="decimal-pad"
@@ -548,15 +557,21 @@ export default function EarningsView({
               </>
             )}
 
-            <Text style={styles.label}>Pay frequency</Text>
-            <View style={styles.typeRow}>
+            <Text className="text-[13px] font-semibold text-[#495057] mb-1">Pay frequency</Text>
+            <View className="flex-row flex-wrap gap-2 mb-3">
               {FREQUENCIES.map((f) => (
                 <TouchableOpacity
                   key={f.key}
-                  style={[styles.typeButton, frequency === f.key && styles.typeActive]}
+                  className={`border rounded-lg py-2.5 px-3 ${frequency === f.key ? 'bg-[#007bff] border-[#007bff]' : 'border-[#dee2e6]'}`}
                   onPress={() => setFrequency(f.key)}
                 >
-                  <Text style={frequency === f.key ? styles.typeActiveText : styles.typeText}>
+                  <Text
+                    className={
+                      frequency === f.key
+                        ? 'text-white font-semibold text-[13px]'
+                        : 'text-[#495057] text-[13px]'
+                    }
+                  >
                     {f.label}
                   </Text>
                 </TouchableOpacity>
@@ -565,16 +580,21 @@ export default function EarningsView({
 
             {renderFrequencyFields()}
 
-            <Text style={styles.label}>First pay date / cycle start</Text>
+            <Text className="text-[13px] font-semibold text-[#495057] mb-1">
+              First pay date / cycle start
+            </Text>
             <TextInput
-              style={styles.field}
+              className="border border-[#dee2e6] rounded-lg p-3 bg-[#f8f9fa]"
               value={startDate}
               onChangeText={setStartDate}
               placeholder="YYYY-MM-DD"
             />
 
-            <TouchableOpacity style={styles.button} onPress={handleSaveSource}>
-              <Text style={styles.buttonText}>
+            <TouchableOpacity
+              className="bg-[#007bff] rounded-lg py-3 px-4 items-center mt-2"
+              onPress={handleSaveSource}
+            >
+              <Text className="text-white font-semibold">
                 {editingSourceId ? 'Update income source' : 'Save income source'}
               </Text>
             </TouchableOpacity>
@@ -582,66 +602,74 @@ export default function EarningsView({
         )}
 
         {sources.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>No income sources yet.</Text>
+          <View className="bg-white rounded-xl p-6 items-center border border-[#e9ecef]">
+            <Text className="text-[#6c757d]">No income sources yet.</Text>
           </View>
         ) : (
           sources.map((source) => (
-            <View key={source.id} style={styles.sourceCard}>
-              <View style={styles.sourceHeader}>
+            <View key={source.id} className="bg-white rounded-xl p-4 mb-3 border border-[#e9ecef]">
+              <View className="flex-row justify-between items-start">
                 <View>
-                  <Text style={styles.sourceName}>{source.name}</Text>
-                  <Text style={styles.sourceMeta}>
+                  <Text className="text-base font-semibold">{source.name}</Text>
+                  <Text className="text-[13px] text-[#6c757d] mt-0.5">
                     {source.frequency} • {source.incomeType} •{' '}
                     {formatCurrency(getPeriodAmount(source))}/period
                   </Text>
                 </View>
-                <View style={styles.sourceActions}>
+                <View className="items-center gap-2">
                   <Switch value={source.active} onValueChange={() => toggleActive(source.id)} />
-                  <View style={styles.sourceActionButtons}>
+                  <View className="flex-row gap-3 mt-1">
                     <TouchableOpacity onPress={() => handleEditSource(source)}>
-                      <Text style={styles.editButtonText}>Edit</Text>
+                      <Text className="text-[#007bff] text-xs font-semibold">Edit</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleDelete(source.id)}>
-                      <Text style={styles.deleteButtonText}>Delete</Text>
+                      <Text className="text-[#dc3545] text-xs font-semibold">Delete</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               </View>
-              <Text style={styles.sourceDetail}>Started {displayDate(source.startDate)}</Text>
+              <Text className="text-xs text-[#6c757d] mt-2">
+                Started {displayDate(source.startDate)}
+              </Text>
             </View>
           ))
         )}
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Projected paychecks</Text>
+      <View className="mt-2 mb-4">
+        <Text className="text-lg font-semibold">Projected paychecks</Text>
         {projectedPeriods.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>No projected paychecks for this month.</Text>
+          <View className="bg-white rounded-xl p-6 items-center border border-[#e9ecef]">
+            <Text className="text-[#6c757d]">No projected paychecks for this month.</Text>
           </View>
         ) : (
           projectedPeriods.map((period) => (
             <TouchableOpacity
               key={`${period.sourceId}-${period.payDate}`}
-              style={styles.paycheckCard}
+              className="bg-white rounded-xl p-3 mb-2 border border-[#e9ecef]"
               onPress={() => openPaycheckEdit(period)}
               disabled={period.isRealized}
             >
-              <View style={styles.paycheckRow}>
-                <Text style={styles.paycheckSource}>{period.sourceName}</Text>
-                <Text style={styles.paycheckAmount}>{formatCurrency(period.effectiveAmount)}</Text>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-sm font-semibold">{period.sourceName}</Text>
+                <Text className="text-sm font-bold">{formatCurrency(period.effectiveAmount)}</Text>
               </View>
-              <Text style={styles.paycheckDate}>
+              <Text className="text-xs text-[#6c757d] mt-1">
                 Pay {displayDate(period.payDate)} · Period {displayDate(period.periodStart)}–
                 {displayDate(period.periodEnd)}
               </Text>
               {period.isRealized ? (
-                <Text style={styles.realizedTag}>Realized income recorded</Text>
+                <Text className="text-[11px] text-[#28a745] mt-1 font-semibold">
+                  Realized income recorded
+                </Text>
               ) : period.isManual ? (
-                <Text style={styles.manualTag}>Manual estimate · tap to edit</Text>
+                <Text className="text-[11px] text-[#007bff] mt-1 font-semibold">
+                  Manual estimate · tap to edit
+                </Text>
               ) : (
-                <Text style={styles.projectedTag}>Tap to estimate</Text>
+                <Text className="text-[11px] text-[#6c757d] mt-1 font-semibold">
+                  Tap to estimate
+                </Text>
               )}
             </TouchableOpacity>
           ))
@@ -654,18 +682,18 @@ export default function EarningsView({
         visible={editPeriod !== null}
         onRequestClose={closePaycheckEdit}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit paycheck estimate</Text>
-            <Text style={styles.modalSubtitle}>
+        <View className="flex-1 justify-center items-center bg-black/40 p-4">
+          <View className="w-full max-w-[400px] bg-white rounded-2xl p-5 border border-[#e9ecef]">
+            <Text className="text-lg font-bold mb-1">Edit paycheck estimate</Text>
+            <Text className="text-[13px] text-[#6c757d] mb-4">
               {editPeriod
                 ? `${editPeriod.sourceName} · Pay ${displayDate(editPeriod.payDate)}`
                 : ''}
             </Text>
 
-            <Text style={styles.label}>Estimated amount</Text>
+            <Text className="text-[13px] font-semibold text-[#495057] mb-1">Estimated amount</Text>
             <TextInput
-              style={styles.field}
+              className="border border-[#dee2e6] rounded-lg p-3 bg-[#f8f9fa]"
               value={editAmount}
               onChangeText={setEditAmount}
               keyboardType="decimal-pad"
@@ -673,24 +701,27 @@ export default function EarningsView({
               autoFocus
             />
 
-            <TouchableOpacity style={styles.button} onPress={handleSaveOverride}>
-              <Text style={styles.buttonText}>Save estimate</Text>
+            <TouchableOpacity
+              className="bg-[#007bff] rounded-lg py-3 px-4 items-center mt-2"
+              onPress={handleSaveOverride}
+            >
+              <Text className="text-white font-semibold">Save estimate</Text>
             </TouchableOpacity>
 
             {editPeriod?.isManual && (
               <TouchableOpacity
-                style={[styles.button, styles.dangerButton]}
+                className="bg-[#dc3545] rounded-lg py-3 px-4 items-center mt-2"
                 onPress={handleRemoveOverride}
               >
-                <Text style={styles.buttonText}>Revert to source estimate</Text>
+                <Text className="text-white font-semibold">Revert to source estimate</Text>
               </TouchableOpacity>
             )}
 
             <TouchableOpacity
-              style={[styles.button, styles.secondaryButton]}
+              className="bg-[#6c757d] rounded-lg py-3 px-4 items-center mt-2"
               onPress={closePaycheckEdit}
             >
-              <Text style={styles.buttonText}>Cancel</Text>
+              <Text className="text-white font-semibold">Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -698,289 +729,3 @@ export default function EarningsView({
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  monthSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  monthButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  monthButtonText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#007bff',
-  },
-  monthText: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  summaryCard: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  summaryAmount: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  positive: {
-    color: '#28a745',
-  },
-  section: {
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  smallButton: {
-    backgroundColor: '#007bff',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  smallButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  formCard: {
-    marginBottom: 16,
-  },
-  fieldGroup: {
-    marginBottom: 12,
-  },
-  flex: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#495057',
-    marginBottom: 4,
-  },
-  field: {
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: '#f8f9fa',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  typeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  typeButton: {
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  typeActive: {
-    backgroundColor: '#007bff',
-    borderColor: '#007bff',
-  },
-  typeText: {
-    color: '#495057',
-    fontSize: 13,
-  },
-  typeActiveText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  button: {
-    backgroundColor: '#007bff',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  secondaryButton: {
-    backgroundColor: '#6c757d',
-  },
-  dangerButton: {
-    backgroundColor: '#dc3545',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  emptyCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 24,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  emptyText: {
-    color: '#6c757d',
-  },
-  sourceCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  sourceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  sourceName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  sourceMeta: {
-    fontSize: 13,
-    color: '#6c757d',
-    marginTop: 2,
-  },
-  sourceDetail: {
-    fontSize: 12,
-    color: '#6c757d',
-    marginTop: 8,
-  },
-  sourceActions: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  sourceActionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
-  },
-  editButtonText: {
-    color: '#007bff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  deleteButtonText: {
-    color: '#dc3545',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  paycheckCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  paycheckRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  paycheckSource: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  paycheckAmount: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  paycheckDate: {
-    fontSize: 12,
-    color: '#6c757d',
-    marginTop: 4,
-  },
-  realizedTag: {
-    fontSize: 11,
-    color: '#28a745',
-    marginTop: 4,
-    fontWeight: '600',
-  },
-  manualTag: {
-    fontSize: 11,
-    color: '#007bff',
-    marginTop: 4,
-    fontWeight: '600',
-  },
-  projectedTag: {
-    fontSize: 11,
-    color: '#6c757d',
-    marginTop: 4,
-    fontWeight: '600',
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    padding: 16,
-  },
-  modalContent: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  modalSubtitle: {
-    fontSize: 13,
-    color: '#6c757d',
-    marginBottom: 16,
-  },
-});
