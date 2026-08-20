@@ -1,3 +1,5 @@
+import './global.css';
+
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
@@ -15,7 +17,12 @@ import { Bill, BudgetCategory, IncomeSource, Tab, Transaction } from './src/type
 
 const TABS: { key: Tab; label: string; icon: string; activeIcon: string }[] = [
   { key: 'dashboard', label: 'Home', icon: 'home-outline', activeIcon: 'home' },
-  { key: 'transactions', label: 'Activity', icon: 'swap-horizontal-outline', activeIcon: 'swap-horizontal' },
+  {
+    key: 'transactions',
+    label: 'Activity',
+    icon: 'swap-horizontal-outline',
+    activeIcon: 'swap-horizontal',
+  },
   { key: 'budget', label: 'Budget', icon: 'wallet-outline', activeIcon: 'wallet' },
   { key: 'bills', label: 'Bills', icon: 'receipt-outline', activeIcon: 'receipt' },
   { key: 'earnings', label: 'Earn', icon: 'cash-outline', activeIcon: 'cash' },
@@ -25,7 +32,10 @@ const TABS: { key: Tab; label: string; icon: string; activeIcon: string }[] = [
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [transactions, setTransactions] = usePersistentState<Transaction[]>('transactions', []);
-  const [categories, setCategories] = usePersistentState<BudgetCategory[]>('categories', DEFAULT_CATEGORIES);
+  const [categories, setCategories] = usePersistentState<BudgetCategory[]>(
+    'categories',
+    DEFAULT_CATEGORIES,
+  );
   const [bills, setBills] = usePersistentState<Bill[]>('bills', []);
   const [incomeSources, setIncomeSources] = usePersistentState<IncomeSource[]>('incomeSources', []);
 
