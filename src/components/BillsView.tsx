@@ -497,7 +497,7 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
           return (
             <View key={`${bill.id}-${dueDate}`} style={styles.billCard}>
               <View style={styles.billHeader}>
-                <View>
+                <View style={styles.billInfo}>
                   <Text style={styles.billName}>{bill.name}</Text>
                   <Text style={styles.billMeta}>
                     {getCategoryName(bill.categoryId)} • Due{' '}
@@ -696,11 +696,17 @@ const styles = StyleSheet.create({
   billHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 8,
+  },
+  billInfo: {
+    flex: 1,
+    marginRight: 12,
   },
   billName: {
     fontSize: 16,
     fontWeight: '600',
+    flexWrap: 'wrap',
   },
   billMeta: {
     fontSize: 12,
@@ -713,6 +719,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 8,
     alignSelf: 'flex-start',
+    marginTop: 2,
+    flexShrink: 0,
   },
   statusText: {
     fontSize: 12,
