@@ -4,6 +4,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -11,12 +12,23 @@ import {
 } from 'react-native';
 import { Bill, BudgetCategory } from '../types';
 import { formatCurrency } from '../utils/csv';
-import { formatLocalDate, getMonthRange, monthName, parseLocalDate } from '../utils/earnings';
+import {
+  getBillActualForMonth,
+  getBillLateDate,
+  getBillOccurrences,
+  getBillPlannedForMonth,
+} from '../utils/bills';
+import { formatLocalDate, monthName, parseLocalDate } from '../utils/earnings';
 
 interface BillsViewProps {
   bills: Bill[];
   categories: BudgetCategory[];
   onBillsChange: React.Dispatch<React.SetStateAction<Bill[]>>;
+}
+
+interface BillOccurrence {
+  bill: Bill;
+  dueDate: string;
 }
 
 function webAlert(title: string, message: string) {
@@ -52,17 +64,27 @@ function webConfirm(
   }
 }
 
-function getStatus(bill: Bill) {
+function getStatus(bill: Bill, dueDate: string) {
   const today = new Date();
-  if (bill.paidDate) {
+  const due = parseLocalDate(dueDate);
+  const paid = bill.paidDate ? parseLocalDate(bill.paidDate) : undefined;
+
+  if (paid && paid.getFullYear() === due.getFullYear() && paid.getMonth() === due.getMonth()) {
     return { label: 'Paid', color: '#28a745' };
   }
-  if (bill.lateDate && parseLocalDate(bill.lateDate) < today) {
-    return { label: 'Late', color: '#dc3545' };
+
+  const lateDateString = getBillLateDate(bill, dueDate);
+  if (lateDateString) {
+    const late = parseLocalDate(lateDateString);
+    if (today > late) {
+      return { label: 'Late', color: '#dc3545' };
+    }
   }
-  if (parseLocalDate(bill.dueDate) < today) {
+
+  if (today > due) {
     return { label: 'Due', color: '#fd7e14' };
   }
+
   return { label: 'Upcoming', color: '#6c757d' };
 }
 
@@ -76,38 +98,46 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
   const [name, setName] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [plannedAmount, setPlannedAmount] = useState('');
+  const [recurring, setRecurring] = useState(true);
+  const [dueDay, setDueDay] = useState('1');
   const [dueDate, setDueDate] = useState(formatLocalDate(now));
+  const [endDate, setEndDate] = useState('');
+  const [lateDay, setLateDay] = useState('');
   const [lateDate, setLateDate] = useState('');
   const [actualAmount, setActualAmount] = useState('');
   const [paidDate, setPaidDate] = useState('');
 
-  const { start, end } = useMemo(() => getMonthRange(year, month), [year, month]);
   const expenseCategories = useMemo(
     () => categories.filter((c) => c.id !== 'income'),
     [categories],
   );
 
-  const monthBills = useMemo(() => {
-    return bills
-      .filter((b) => {
-        const d = parseLocalDate(b.dueDate);
-        return d >= start && d <= end;
-      })
-      .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
-  }, [bills, start, end]);
+  const occurrences = useMemo<BillOccurrence[]>(() => {
+    return bills.flatMap((bill) =>
+      getBillOccurrences(bill, year, month).map((dueDate) => ({ bill, dueDate })),
+    );
+  }, [bills, year, month]);
+
+  const monthBills = useMemo(
+    () => [...occurrences].sort((a, b) => a.dueDate.localeCompare(b.dueDate)),
+    [occurrences],
+  );
 
   const totals = useMemo(() => {
-    const planned = monthBills.reduce((sum, b) => sum + b.plannedAmount, 0);
-    const actual = monthBills.reduce((sum, b) => sum + (b.actualAmount ?? 0), 0);
-    const paid = monthBills.reduce((sum, b) => sum + (b.paidDate ? (b.actualAmount ?? 0) : 0), 0);
-    return { planned, actual, paid };
-  }, [monthBills]);
+    const planned = bills.reduce((sum, b) => sum + getBillPlannedForMonth(b, year, month), 0);
+    const paid = bills.reduce((sum, b) => sum + getBillActualForMonth(b, year, month), 0);
+    return { planned, paid };
+  }, [bills, year, month]);
 
   const resetForm = () => {
     setName('');
     setCategoryId(expenseCategories[0]?.id ?? '');
     setPlannedAmount('');
+    setRecurring(true);
+    setDueDay('1');
     setDueDate(formatLocalDate(now));
+    setEndDate('');
+    setLateDay('');
     setLateDate('');
     setActualAmount('');
     setPaidDate('');
@@ -119,7 +149,11 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
     setName(bill.name);
     setCategoryId(bill.categoryId);
     setPlannedAmount(bill.plannedAmount.toString());
-    setDueDate(bill.dueDate);
+    setRecurring(bill.recurring);
+    setDueDay(bill.dueDay?.toString() ?? '1');
+    setDueDate(bill.dueDate ?? formatLocalDate(now));
+    setEndDate(bill.endDate ?? '');
+    setLateDay(bill.lateDay?.toString() ?? '');
     setLateDate(bill.lateDate ?? '');
     setActualAmount(bill.actualAmount?.toString() ?? '');
     setPaidDate(bill.paidDate ?? '');
@@ -174,22 +208,61 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
       return;
     }
 
-    const dueError = validateDate(dueDate, 'Due date');
-    if (dueError) {
-      webAlert('Invalid date', dueError);
-      return;
+    let dueDayNumber: number | undefined;
+    let dueDateString: string | undefined;
+
+    if (recurring) {
+      const day = Number.parseInt(dueDay, 10);
+      if (Number.isNaN(day) || day < 1 || day > 31) {
+        webAlert('Invalid due day', 'Please enter a day of the month between 1 and 31.');
+        return;
+      }
+      dueDayNumber = day;
+    } else {
+      const dueError = validateDate(dueDate, 'Due date');
+      if (dueError) {
+        webAlert('Invalid date', dueError);
+        return;
+      }
+      dueDateString = formatLocalDate(new Date(dueDate));
     }
 
-    if (lateDate) {
+    if (endDate) {
+      const endError = validateDate(endDate, 'End date');
+      if (endError) {
+        webAlert('Invalid date', endError);
+        return;
+      }
+      if (dueDateString && parseLocalDate(endDate) < parseLocalDate(dueDateString)) {
+        webAlert('Invalid end date', 'End date must be on or after the due date.');
+        return;
+      }
+    }
+
+    let lateDayNumber: number | undefined;
+    let lateDateString: string | undefined;
+
+    if (recurring && lateDay) {
+      const offset = Number.parseInt(lateDay, 10);
+      if (Number.isNaN(offset) || offset < 0) {
+        webAlert('Invalid late day offset', 'Please enter a non-negative number of days.');
+        return;
+      }
+      lateDayNumber = offset;
+    }
+
+    if (!recurring && lateDate) {
       const lateError = validateDate(lateDate, 'Late date');
       if (lateError) {
         webAlert('Invalid date', lateError);
         return;
       }
-      if (parseLocalDate(lateDate) < parseLocalDate(dueDate)) {
+      const due = dueDateString ? parseLocalDate(dueDateString) : undefined;
+      if (due && parseLocalDate(lateDate) < due) {
         webAlert('Invalid late date', 'Late date must be on or after the due date.');
         return;
       }
+      lateDateString = formatLocalDate(new Date(lateDate));
     }
 
     if (paidDate && validateDate(paidDate, 'Paid date')) {
@@ -211,8 +284,12 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
       name: trimmedName,
       categoryId,
       plannedAmount: planned,
-      dueDate: formatLocalDate(new Date(dueDate)),
-      lateDate: lateDate ? formatLocalDate(new Date(lateDate)) : undefined,
+      recurring,
+      dueDay: dueDayNumber,
+      dueDate: dueDateString,
+      endDate: endDate ? formatLocalDate(new Date(endDate)) : undefined,
+      lateDay: lateDayNumber,
+      lateDate: lateDateString,
       actualAmount: actual,
       paidDate: paidDate ? formatLocalDate(new Date(paidDate)) : undefined,
       active: true,
@@ -245,14 +322,24 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
     );
   };
 
-  const handleMarkPaid = (bill: Bill) => {
-    const paid = bill.paidDate ? undefined : formatLocalDate(new Date());
-    const actual = bill.paidDate ? undefined : (bill.actualAmount ?? bill.plannedAmount);
-    onBillsChange((prev) =>
-      prev.map((b) =>
-        b.id === bill.id ? { ...b, paidDate: paid, actualAmount: actual ?? b.plannedAmount } : b,
-      ),
-    );
+  const handleMarkPaid = (bill: Bill, dueDate: string) => {
+    const due = parseLocalDate(dueDate);
+    const paid = bill.paidDate ? parseLocalDate(bill.paidDate) : undefined;
+    const isPaidThisMonth =
+      paid && paid.getFullYear() === due.getFullYear() && paid.getMonth() === due.getMonth();
+
+    if (isPaidThisMonth) {
+      onBillsChange((prev) =>
+        prev.map((b) =>
+          b.id === bill.id ? { ...b, paidDate: undefined, actualAmount: undefined } : b,
+        ),
+      );
+    } else {
+      const amount = bill.actualAmount ?? bill.plannedAmount;
+      onBillsChange((prev) =>
+        prev.map((b) => (b.id === bill.id ? { ...b, paidDate: dueDate, actualAmount: amount } : b)),
+      );
+    }
   };
 
   const getCategoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? id;
@@ -293,21 +380,58 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
         keyboardType="decimal-pad"
       />
 
-      <Text style={styles.label}>Due date</Text>
-      <TextInput
-        style={styles.field}
-        value={dueDate}
-        onChangeText={setDueDate}
-        placeholder="YYYY-MM-DD"
-      />
+      <View style={styles.switchRow}>
+        <Text style={styles.label}>Recurring monthly</Text>
+        <Switch value={recurring} onValueChange={setRecurring} />
+      </View>
 
-      <Text style={styles.label}>Late date (optional)</Text>
-      <TextInput
-        style={styles.field}
-        value={lateDate}
-        onChangeText={setLateDate}
-        placeholder="YYYY-MM-DD"
-      />
+      {recurring ? (
+        <>
+          <Text style={styles.label}>Due day of month</Text>
+          <TextInput
+            style={styles.field}
+            value={dueDay}
+            onChangeText={setDueDay}
+            placeholder="1-31"
+            keyboardType="number-pad"
+          />
+
+          <Text style={styles.label}>End date (optional)</Text>
+          <TextInput
+            style={styles.field}
+            value={endDate}
+            onChangeText={setEndDate}
+            placeholder="YYYY-MM-DD"
+          />
+
+          <Text style={styles.label}>Late day offset (optional)</Text>
+          <TextInput
+            style={styles.field}
+            value={lateDay}
+            onChangeText={setLateDay}
+            placeholder="Days after due date"
+            keyboardType="number-pad"
+          />
+        </>
+      ) : (
+        <>
+          <Text style={styles.label}>Due date</Text>
+          <TextInput
+            style={styles.field}
+            value={dueDate}
+            onChangeText={setDueDate}
+            placeholder="YYYY-MM-DD"
+          />
+
+          <Text style={styles.label}>Late date (optional)</Text>
+          <TextInput
+            style={styles.field}
+            value={lateDate}
+            onChangeText={setLateDate}
+            placeholder="YYYY-MM-DD"
+          />
+        </>
+      )}
 
       <Text style={styles.label}>Actual amount (optional)</Text>
       <TextInput
@@ -367,18 +491,22 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
       {monthBills.length === 0 ? (
         <Text style={styles.empty}>No bills for this month.</Text>
       ) : (
-        monthBills.map((bill) => {
-          const status = getStatus(bill);
+        monthBills.map(({ bill, dueDate }) => {
+          const status = getStatus(bill, dueDate);
+          const lateDateString = getBillLateDate(bill, dueDate);
           return (
-            <View key={bill.id} style={styles.billCard}>
+            <View key={`${bill.id}-${dueDate}`} style={styles.billCard}>
               <View style={styles.billHeader}>
                 <View>
                   <Text style={styles.billName}>{bill.name}</Text>
                   <Text style={styles.billMeta}>
                     {getCategoryName(bill.categoryId)} • Due{' '}
-                    {formatLocalDate(parseLocalDate(bill.dueDate))}
-                    {bill.lateDate
-                      ? ` • Late ${formatLocalDate(parseLocalDate(bill.lateDate))}`
+                    {formatLocalDate(parseLocalDate(dueDate))}
+                    {lateDateString
+                      ? ` • Late ${formatLocalDate(parseLocalDate(lateDateString))}`
+                      : ''}
+                    {bill.recurring
+                      ? ` • ${bill.endDate ? `until ${bill.endDate}` : 'monthly'}`
                       : ''}
                   </Text>
                 </View>
@@ -398,12 +526,12 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
                 <TouchableOpacity
                   style={[
                     styles.smallButton,
-                    bill.paidDate ? styles.paidButton : styles.unpaidButton,
+                    status.label === 'Paid' ? styles.paidButton : styles.unpaidButton,
                   ]}
-                  onPress={() => handleMarkPaid(bill)}
+                  onPress={() => handleMarkPaid(bill, dueDate)}
                 >
                   <Text style={styles.smallButtonText}>
-                    {bill.paidDate ? 'Mark unpaid' : 'Mark paid'}
+                    {status.label === 'Paid' ? 'Mark unpaid' : 'Mark paid'}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -516,6 +644,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     backgroundColor: '#f8f9fa',
   },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   categoryRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -620,9 +754,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#e9ecef',
   },
   secondarySmallButtonText: {
+    color: '#495057',
     fontSize: 12,
     fontWeight: '600',
-    color: '#495057',
   },
   dangerSmallButton: {
     borderRadius: 6,
@@ -631,8 +765,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8d7da',
   },
   dangerSmallButtonText: {
+    color: '#dc3545',
     fontSize: 12,
     fontWeight: '600',
-    color: '#dc3545',
   },
 });

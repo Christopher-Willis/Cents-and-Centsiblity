@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Bill, BudgetCategory, Transaction } from '../types';
 import { formatCurrency } from '../utils/csv';
+import { getBillActualForMonth, getBillPlannedForMonth } from '../utils/bills';
 import { getMonthRange, parseLocalDate } from '../utils/earnings';
 
 interface BudgetViewProps {
@@ -78,23 +79,31 @@ export default function BudgetView({
   const [editName, setEditName] = useState('');
   const [editBudget, setEditBudget] = useState('');
 
-  const getPlanned = (categoryId: string) =>
-    bills
-      .filter((b) => b.categoryId === categoryId)
-      .filter((b) => {
-        const due = parseLocalDate(b.dueDate);
-        return due >= start && due <= end;
-      })
-      .reduce((sum, b) => sum + b.plannedAmount, 0);
+  const getCategoryBills = (categoryId: string) => bills.filter((b) => b.categoryId === categoryId);
 
-  const getActual = (categoryId: string) =>
-    transactions
+  const getPlanned = (categoryId: string) =>
+    getCategoryBills(categoryId).reduce(
+      (sum, b) =>
+        sum +
+        getBillPlannedForMonth(b, now.getFullYear(), now.getMonth() + 1) -
+        getBillActualForMonth(b, now.getFullYear(), now.getMonth() + 1),
+      0,
+    );
+
+  const getActual = (categoryId: string) => {
+    const transactionTotal = transactions
       .filter((t) => t.type === 'expense' && t.categoryId === categoryId)
       .filter((t) => {
         const date = parseLocalDate(t.date);
         return date >= start && date <= end;
       })
       .reduce((sum, t) => sum + t.amount, 0);
+    const billTotal = getCategoryBills(categoryId).reduce(
+      (sum, b) => sum + getBillActualForMonth(b, now.getFullYear(), now.getMonth() + 1),
+      0,
+    );
+    return transactionTotal + billTotal;
+  };
 
   const handleAddCategory = () => {
     const budget = Number.parseFloat(newBudget);
