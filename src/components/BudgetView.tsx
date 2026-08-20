@@ -1,9 +1,13 @@
 import { useMemo, useState } from 'react';
-import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { Bill, BudgetCategory, Transaction } from '../types';
 import { formatCurrency } from '../utils/csv';
 import { getBillActualForMonth, getBillPlannedForMonth } from '../utils/bills';
 import { getMonthRange, parseLocalDate } from '../utils/earnings';
+import Button from './ui/Button';
+import Card from './ui/Card';
+import FormField from './ui/FormField';
+import ScreenScroll from './ui/ScreenScroll';
 
 interface BudgetViewProps {
   transactions: Transaction[];
@@ -153,33 +157,22 @@ export default function BudgetView({
   };
 
   return (
-    <ScrollView className="flex-1 bg-midnight" contentContainerClassName="p-4 pb-32">
-      <Text className="text-2xl font-bold mb-4 text-ink">Budget</Text>
-
-      <View className="rounded-2xl border border-white/[0.06] bg-surface p-4 mb-3">
+    <ScreenScroll title="Budget">
+      <Card className="mb-3 p-4">
         <Text className="text-lg font-semibold mb-3 text-ink">Add budget group</Text>
-        <TextInput
-          className="bg-surface2 rounded-xl border border-white/10 px-3 py-2.5 text-ink mb-3"
+        <FormField
           value={newName}
           onChangeText={setNewName}
           placeholder="Group name (e.g. Utilities)"
-          placeholderTextColor="#8b939f"
         />
-        <TextInput
-          className="bg-surface2 rounded-xl border border-white/10 px-3 py-2.5 text-ink mb-3"
+        <FormField
           value={newBudget}
           onChangeText={setNewBudget}
           placeholder="Monthly budget limit"
           keyboardType="decimal-pad"
-          placeholderTextColor="#8b939f"
         />
-        <TouchableOpacity
-          className="rounded-full bg-mint py-3 px-4 items-center"
-          onPress={handleAddCategory}
-        >
-          <Text className="text-midnight font-semibold">Add group</Text>
-        </TouchableOpacity>
-      </View>
+        <Button label="Add group" onPress={handleAddCategory} className="py-3 px-4" />
+      </Card>
 
       {expenseCategories.length === 0 ? (
         <Text className="text-ink-muted text-center mt-8">No budget groups yet.</Text>
@@ -198,38 +191,27 @@ export default function BudgetView({
           const isEditing = editingId === category.id;
 
           return (
-            <View
-              key={category.id}
-              className="rounded-2xl border border-white/[0.06] bg-surface p-4 mb-3"
-            >
+            <Card key={category.id} className="mb-3 p-4">
               {isEditing ? (
                 <>
-                  <TextInput
-                    className="bg-surface2 rounded-xl border border-white/10 px-3 py-2.5 text-ink mb-3"
-                    value={editName}
-                    onChangeText={setEditName}
-                    placeholderTextColor="#8b939f"
-                  />
-                  <TextInput
-                    className="bg-surface2 rounded-xl border border-white/10 px-3 py-2.5 text-ink mb-3"
+                  <FormField value={editName} onChangeText={setEditName} />
+                  <FormField
                     value={editBudget}
                     onChangeText={setEditBudget}
                     keyboardType="decimal-pad"
-                    placeholderTextColor="#8b939f"
                   />
                   <View className="flex-row gap-2">
-                    <TouchableOpacity
-                      className="rounded-full bg-mint py-2 px-3 items-center flex-1"
+                    <Button
+                      label="Save"
                       onPress={() => saveEdit(category.id)}
-                    >
-                      <Text className="text-midnight font-semibold">Save</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      className="rounded-full bg-surface2 py-2 px-3 items-center flex-1"
+                      className="flex-1 py-2 px-3"
+                    />
+                    <Button
+                      label="Cancel"
                       onPress={cancelEdit}
-                    >
-                      <Text className="text-ink-muted font-semibold">Cancel</Text>
-                    </TouchableOpacity>
+                      variant="secondary-muted"
+                      className="flex-1 py-2 px-3"
+                    />
                   </View>
                 </>
               ) : (
@@ -286,10 +268,10 @@ export default function BudgetView({
                   </Text>
                 </>
               )}
-            </View>
+            </Card>
           );
         })
       )}
-    </ScrollView>
+    </ScreenScroll>
   );
 }
