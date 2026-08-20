@@ -4,16 +4,18 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import BudgetView from './src/components/BudgetView';
 import Dashboard from './src/components/Dashboard';
+import EarningsView from './src/components/EarningsView';
 import ImportView from './src/components/ImportView';
 import TransactionList from './src/components/TransactionList';
 import { DEFAULT_CATEGORIES } from './src/data/categories';
 import { usePersistentState } from './src/hooks/usePersistentState';
-import { Tab, Transaction, BudgetCategory } from './src/types';
+import { IncomeSource, Tab, Transaction, BudgetCategory } from './src/types';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'dashboard', label: 'Home' },
   { key: 'transactions', label: 'Transactions' },
   { key: 'budget', label: 'Budget' },
+  { key: 'earnings', label: 'Earnings' },
   { key: 'import', label: 'Import' },
 ];
 
@@ -21,6 +23,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [transactions, setTransactions] = usePersistentState<Transaction[]>('transactions', []);
   const [categories] = usePersistentState<BudgetCategory[]>('categories', DEFAULT_CATEGORIES);
+  const [incomeSources, setIncomeSources] = usePersistentState<IncomeSource[]>('incomeSources', []);
 
   const handleImport = (newTransactions: Transaction[]) => {
     setTransactions((prev) => [...prev, ...newTransactions]);
@@ -41,6 +44,15 @@ export default function App() {
         return <TransactionList transactions={transactions} categories={categories} />;
       case 'budget':
         return <BudgetView transactions={transactions} categories={categories} />;
+      case 'earnings':
+        return (
+          <EarningsView
+            transactions={transactions}
+            categories={categories}
+            sources={incomeSources}
+            onSourcesChange={setIncomeSources}
+          />
+        );
       case 'import':
         return <ImportView categories={categories} onImport={handleImport} />;
       default:
