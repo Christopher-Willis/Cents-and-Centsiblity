@@ -1,7 +1,9 @@
+import './global.css';
+
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import BillsView from './src/components/BillsView';
 import BudgetView from './src/components/BudgetView';
@@ -15,7 +17,12 @@ import { Bill, BudgetCategory, IncomeSource, Tab, Transaction } from './src/type
 
 const TABS: { key: Tab; label: string; icon: string; activeIcon: string }[] = [
   { key: 'dashboard', label: 'Home', icon: 'home-outline', activeIcon: 'home' },
-  { key: 'transactions', label: 'Activity', icon: 'swap-horizontal-outline', activeIcon: 'swap-horizontal' },
+  {
+    key: 'transactions',
+    label: 'Activity',
+    icon: 'swap-horizontal-outline',
+    activeIcon: 'swap-horizontal',
+  },
   { key: 'budget', label: 'Budget', icon: 'wallet-outline', activeIcon: 'wallet' },
   { key: 'bills', label: 'Bills', icon: 'receipt-outline', activeIcon: 'receipt' },
   { key: 'earnings', label: 'Earn', icon: 'cash-outline', activeIcon: 'cash' },
@@ -25,7 +32,10 @@ const TABS: { key: Tab; label: string; icon: string; activeIcon: string }[] = [
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [transactions, setTransactions] = usePersistentState<Transaction[]>('transactions', []);
-  const [categories, setCategories] = usePersistentState<BudgetCategory[]>('categories', DEFAULT_CATEGORIES);
+  const [categories, setCategories] = usePersistentState<BudgetCategory[]>(
+    'categories',
+    DEFAULT_CATEGORIES,
+  );
   const [bills, setBills] = usePersistentState<Bill[]>('bills', []);
   const [incomeSources, setIncomeSources] = usePersistentState<IncomeSource[]>('incomeSources', []);
 
@@ -75,25 +85,29 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>{renderContent()}</View>
+      <SafeAreaView className="flex-1 bg-[#f8f9fa]">
+        <View className="flex-1">{renderContent()}</View>
 
-        <View style={styles.tabBar}>
+        <View className="flex-row bg-white border-t border-t-[#dee2e6] pb-2 pt-2">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.key;
             return (
               <TouchableOpacity
                 key={tab.key}
-                style={[styles.tab, isActive && styles.activeTab]}
+                className={`flex-1 items-center py-1.5 ${isActive ? 'border-t-2 border-t-[#007bff]' : ''}`}
                 onPress={() => setActiveTab(tab.key)}
               >
                 <Ionicons
                   name={(isActive ? tab.activeIcon : tab.icon) as any}
                   size={22}
                   color={isActive ? '#007bff' : '#6c757d'}
-                  style={styles.tabIcon}
+                  className="mb-0.5"
                 />
-                <Text style={[styles.tabText, isActive && styles.activeTabText]}>{tab.label}</Text>
+                <Text
+                  className={`text-[10px] ${isActive ? 'text-[#007bff] font-semibold' : 'text-[#6c757d]'}`}
+                >
+                  {tab.label}
+                </Text>
               </TouchableOpacity>
             );
           })}
@@ -103,41 +117,3 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  content: {
-    flex: 1,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#dee2e6',
-    paddingBottom: 8,
-    paddingTop: 8,
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  activeTab: {
-    borderTopWidth: 2,
-    borderTopColor: '#007bff',
-  },
-  tabIcon: {
-    marginBottom: 2,
-  },
-  tabText: {
-    fontSize: 10,
-    color: '#6c757d',
-  },
-  activeTabText: {
-    color: '#007bff',
-    fontWeight: '600',
-  },
-});

@@ -1,13 +1,5 @@
 import { useState } from 'react';
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { BudgetCategory, Transaction, TransactionType } from '../types';
 import { parseCsv } from '../utils/csv';
 import { pickAndReadCsv } from '../utils/fileReader';
@@ -88,21 +80,25 @@ export default function ImportView({ categories, onImport }: ImportViewProps) {
   const expenseCategories = categories.filter((c) => c.id !== 'income');
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Import Transactions</Text>
+    <ScrollView className="flex-1 bg-[#f8f9fa]" contentContainerClassName="p-4 pb-8">
+      <Text className="text-2xl font-bold mb-4">Import Transactions</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Manual CSV upload</Text>
-        <Text style={styles.hint}>
+      <View className="bg-white rounded-xl p-4 mb-4 border border-[#e9ecef]">
+        <Text className="text-lg font-semibold mb-2">Manual CSV upload</Text>
+        <Text className="text-[13px] text-[#6c757d] mb-3">
           CSV must have columns: date, description, amount. Optional: type, category.
         </Text>
 
-        <TouchableOpacity style={styles.button} onPress={handlePickFile}>
-          <Text style={styles.buttonText}>Select CSV file</Text>
+        <TouchableOpacity
+          className="bg-[#007bff] rounded-lg py-3 px-4 items-center mb-3"
+          onPress={handlePickFile}
+        >
+          <Text className="text-white font-semibold">Select CSV file</Text>
         </TouchableOpacity>
 
         <TextInput
-          style={styles.input}
+          className="border border-[#dee2e6] rounded-lg p-3 min-h-[100px] mb-3 bg-[#f8f9fa]"
+          style={{ textAlignVertical: 'top' }}
           multiline
           numberOfLines={6}
           placeholder="Or paste CSV here..."
@@ -111,16 +107,16 @@ export default function ImportView({ categories, onImport }: ImportViewProps) {
         />
 
         <TouchableOpacity
-          style={[styles.button, styles.secondaryButton]}
+          className="bg-[#6c757d] rounded-lg py-3 px-4 items-center mb-3"
           onPress={() => handleParse(csvText)}
         >
-          <Text style={styles.buttonText}>Preview</Text>
+          <Text className="text-white font-semibold">Preview</Text>
         </TouchableOpacity>
 
         {parseErrors.length > 0 && (
-          <View style={styles.errors}>
+          <View className="mb-3">
             {parseErrors.map((error, index) => (
-              <Text key={index} style={styles.errorText}>
+              <Text key={index} className="text-[#dc3545] text-[13px]">
                 {error}
               </Text>
             ))}
@@ -128,64 +124,72 @@ export default function ImportView({ categories, onImport }: ImportViewProps) {
         )}
 
         {preview && (
-          <View style={styles.preview}>
-            <Text style={styles.previewText}>
+          <View className="bg-[#e9ecef] rounded-lg p-3">
+            <Text className="mb-2 font-semibold">
               {preview.length} transaction{preview.length === 1 ? '' : 's'} ready to import
             </Text>
             <TouchableOpacity
-              style={[styles.button, styles.successButton]}
+              className="bg-[#28a745] rounded-lg py-3 px-4 items-center mb-3"
               onPress={handleAddPreview}
               disabled={preview.length === 0}
             >
-              <Text style={styles.buttonText}>Add to transactions</Text>
+              <Text className="text-white font-semibold">Add to transactions</Text>
             </TouchableOpacity>
           </View>
         )}
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Add one manually</Text>
+      <View className="bg-white rounded-xl p-4 mb-4 border border-[#e9ecef]">
+        <Text className="text-lg font-semibold mb-2">Add one manually</Text>
 
-        <Text style={styles.label}>Date</Text>
+        <Text className="text-[13px] font-semibold text-[#495057] mb-1">Date</Text>
         <TextInput
-          style={styles.field}
+          className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
           value={manualDate}
           onChangeText={setManualDate}
           placeholder="YYYY-MM-DD"
         />
 
-        <Text style={styles.label}>Description</Text>
+        <Text className="text-[13px] font-semibold text-[#495057] mb-1">Description</Text>
         <TextInput
-          style={styles.field}
+          className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
           value={manualDescription}
           onChangeText={setManualDescription}
           placeholder="Coffee, paycheck, etc."
         />
 
-        <Text style={styles.label}>Amount</Text>
+        <Text className="text-[13px] font-semibold text-[#495057] mb-1">Amount</Text>
         <TextInput
-          style={styles.field}
+          className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
           value={manualAmount}
           onChangeText={setManualAmount}
           placeholder="0.00"
           keyboardType="decimal-pad"
         />
 
-        <Text style={styles.label}>Type</Text>
-        <View style={styles.typeRow}>
+        <Text className="text-[13px] font-semibold text-[#495057] mb-1">Type</Text>
+        <View className="flex-row gap-2 mb-3">
           <TouchableOpacity
-            style={[styles.typeButton, manualType === 'expense' && styles.typeActive]}
+            className={`flex-1 rounded-lg p-2.5 items-center border ${
+              manualType === 'expense' ? 'bg-[#007bff] border-[#007bff]' : 'border-[#dee2e6]'
+            }`}
             onPress={() => setManualType('expense')}
           >
-            <Text style={manualType === 'expense' ? styles.typeActiveText : styles.typeText}>
+            <Text
+              className={manualType === 'expense' ? 'text-white font-semibold' : 'text-[#495057]'}
+            >
               Expense
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.typeButton, manualType === 'income' && styles.typeActive]}
+            className={`flex-1 rounded-lg p-2.5 items-center border ${
+              manualType === 'income' ? 'bg-[#007bff] border-[#007bff]' : 'border-[#dee2e6]'
+            }`}
             onPress={() => setManualType('income')}
           >
-            <Text style={manualType === 'income' ? styles.typeActiveText : styles.typeText}>
+            <Text
+              className={manualType === 'income' ? 'text-white font-semibold' : 'text-[#495057]'}
+            >
               Income
             </Text>
           </TouchableOpacity>
@@ -193,22 +197,24 @@ export default function ImportView({ categories, onImport }: ImportViewProps) {
 
         {manualType === 'expense' && (
           <>
-            <Text style={styles.label}>Category</Text>
-            <View style={styles.categoryRow}>
+            <Text className="text-[13px] font-semibold text-[#495057] mb-1">Category</Text>
+            <View className="flex-row flex-wrap gap-2 mb-3">
               {expenseCategories.map((category) => (
                 <TouchableOpacity
                   key={category.id}
-                  style={[
-                    styles.categoryChip,
-                    manualCategoryId === category.id && styles.categoryActive,
-                  ]}
+                  className={`rounded-2xl py-1.5 px-3 border ${
+                    manualCategoryId === category.id
+                      ? 'bg-[#007bff] border-[#007bff]'
+                      : 'border-[#dee2e6]'
+                  }`}
                   onPress={() => setManualCategoryId(category.id)}
                 >
                   <Text
-                    style={[
-                      styles.categoryText,
-                      manualCategoryId === category.id && styles.categoryActiveText,
-                    ]}
+                    className={`text-[13px] ${
+                      manualCategoryId === category.id
+                        ? 'text-white font-semibold'
+                        : 'text-[#495057]'
+                    }`}
                   >
                     {category.name}
                   </Text>
@@ -218,14 +224,17 @@ export default function ImportView({ categories, onImport }: ImportViewProps) {
           </>
         )}
 
-        <TouchableOpacity style={styles.button} onPress={handleAddManual}>
-          <Text style={styles.buttonText}>Add transaction</Text>
+        <TouchableOpacity
+          className="bg-[#007bff] rounded-lg py-3 px-4 items-center mb-3"
+          onPress={handleAddManual}
+        >
+          <Text className="text-white font-semibold">Add transaction</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.card, styles.placeholderCard]}>
-        <Text style={styles.sectionTitle}>External sync</Text>
-        <Text style={styles.hint}>
+      <View className="bg-white rounded-xl p-4 mb-4 border border-[#e9ecef] opacity-80">
+        <Text className="text-lg font-semibold mb-2">External sync</Text>
+        <Text className="text-[13px] text-[#6c757d] mb-3">
           Bank sync (Plaid, etc.) is not connected yet. This module will be expanded as support is
           added.
         </Text>
@@ -233,147 +242,3 @@ export default function ImportView({ categories, onImport }: ImportViewProps) {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  hint: {
-    fontSize: 13,
-    color: '#6c757d',
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#007bff',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  secondaryButton: {
-    backgroundColor: '#6c757d',
-  },
-  successButton: {
-    backgroundColor: '#28a745',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 8,
-    padding: 12,
-    minHeight: 100,
-    textAlignVertical: 'top',
-    marginBottom: 12,
-    backgroundColor: '#f8f9fa',
-  },
-  field: {
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    backgroundColor: '#f8f9fa',
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#495057',
-    marginBottom: 4,
-  },
-  errors: {
-    marginBottom: 12,
-  },
-  errorText: {
-    color: '#dc3545',
-    fontSize: 13,
-  },
-  preview: {
-    backgroundColor: '#e9ecef',
-    borderRadius: 8,
-    padding: 12,
-  },
-  previewText: {
-    marginBottom: 8,
-    fontWeight: '600',
-  },
-  typeRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
-  },
-  typeButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 8,
-    padding: 10,
-    alignItems: 'center',
-  },
-  typeActive: {
-    backgroundColor: '#007bff',
-    borderColor: '#007bff',
-  },
-  typeText: {
-    color: '#495057',
-  },
-  typeActiveText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  categoryChip: {
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  categoryActive: {
-    backgroundColor: '#007bff',
-    borderColor: '#007bff',
-  },
-  categoryText: {
-    color: '#495057',
-    fontSize: 13,
-  },
-  categoryActiveText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  placeholderCard: {
-    opacity: 0.8,
-  },
-});

@@ -1,14 +1,5 @@
 import { useMemo, useState } from 'react';
-import {
-  Alert,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Bill, BudgetCategory, Transaction } from '../types';
 import { formatCurrency } from '../utils/csv';
 import { getBillActualForMonth, getBillPlannedForMonth } from '../utils/bills';
@@ -162,31 +153,34 @@ export default function BudgetView({
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Budget</Text>
+    <ScrollView className="flex-1 bg-[#f8f9fa]" contentContainerClassName="p-4 pb-8">
+      <Text className="text-2xl font-bold mb-4">Budget</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Add budget group</Text>
+      <View className="bg-white rounded-xl p-4 mb-3 border border-[#e9ecef]">
+        <Text className="text-lg font-semibold mb-3">Add budget group</Text>
         <TextInput
-          style={styles.field}
+          className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
           value={newName}
           onChangeText={setNewName}
           placeholder="Group name (e.g. Utilities)"
         />
         <TextInput
-          style={styles.field}
+          className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
           value={newBudget}
           onChangeText={setNewBudget}
           placeholder="Monthly budget limit"
           keyboardType="decimal-pad"
         />
-        <TouchableOpacity style={styles.button} onPress={handleAddCategory}>
-          <Text style={styles.buttonText}>Add group</Text>
+        <TouchableOpacity
+          className="bg-[#007bff] rounded-lg py-3 px-4 items-center"
+          onPress={handleAddCategory}
+        >
+          <Text className="text-white font-semibold">Add group</Text>
         </TouchableOpacity>
       </View>
 
       {expenseCategories.length === 0 ? (
-        <Text style={styles.empty}>No budget groups yet.</Text>
+        <Text className="text-[#6c757d] text-center mt-8">No budget groups yet.</Text>
       ) : (
         expenseCategories.map((category) => {
           const planned = getPlanned(category.id);
@@ -202,79 +196,86 @@ export default function BudgetView({
           const isEditing = editingId === category.id;
 
           return (
-            <View key={category.id} style={styles.card}>
+            <View
+              key={category.id}
+              className="bg-white rounded-xl p-4 mb-3 border border-[#e9ecef]"
+            >
               {isEditing ? (
                 <>
-                  <TextInput style={styles.field} value={editName} onChangeText={setEditName} />
                   <TextInput
-                    style={styles.field}
+                    className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
+                    value={editName}
+                    onChangeText={setEditName}
+                  />
+                  <TextInput
+                    className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
                     value={editBudget}
                     onChangeText={setEditBudget}
                     keyboardType="decimal-pad"
                   />
-                  <View style={styles.editActions}>
+                  <View className="flex-row gap-2">
                     <TouchableOpacity
-                      style={styles.smallButton}
+                      className="bg-[#007bff] rounded-md py-2 px-3 items-center flex-1"
                       onPress={() => saveEdit(category.id)}
                     >
-                      <Text style={styles.smallButtonText}>Save</Text>
+                      <Text className="text-white font-semibold">Save</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.secondarySmallButton} onPress={cancelEdit}>
-                      <Text style={styles.secondarySmallButtonText}>Cancel</Text>
+                    <TouchableOpacity
+                      className="bg-[#e9ecef] rounded-md py-2 px-3 items-center flex-1"
+                      onPress={cancelEdit}
+                    >
+                      <Text className="text-[#495057] font-semibold">Cancel</Text>
                     </TouchableOpacity>
                   </View>
                 </>
               ) : (
                 <>
-                  <View style={styles.header}>
-                    <Text style={styles.categoryName}>{category.name}</Text>
-                    <View style={styles.actions}>
-                      <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => startEdit(category)}
-                      >
-                        <Text style={styles.actionText}>Edit</Text>
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-base font-semibold flex-1">{category.name}</Text>
+                    <View className="flex-row gap-3">
+                      <TouchableOpacity className="p-1" onPress={() => startEdit(category)}>
+                        <Text className="text-[13px] text-[#007bff] font-semibold">Edit</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => handleDelete(category.id)}
-                      >
-                        <Text style={[styles.actionText, styles.dangerText]}>Delete</Text>
+                      <TouchableOpacity className="p-1" onPress={() => handleDelete(category.id)}>
+                        <Text className="text-[13px] font-semibold text-[#dc3545]">Delete</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
 
-                  <View style={styles.amounts}>
-                    <Text style={styles.amountLabel}>{formatCurrency(actual)} spent</Text>
-                    <Text style={styles.amountLabel}>{formatCurrency(planned)} planned</Text>
-                    <Text style={styles.amountLabel}>{formatCurrency(category.budget)} budget</Text>
+                  <View className="flex-row justify-between mb-2">
+                    <Text className="text-xs text-[#6c757d]">{formatCurrency(actual)} spent</Text>
+                    <Text className="text-xs text-[#6c757d]">
+                      {formatCurrency(planned)} planned
+                    </Text>
+                    <Text className="text-xs text-[#6c757d]">
+                      {formatCurrency(category.budget)} budget
+                    </Text>
                   </View>
 
-                  <View style={styles.barBackground}>
-                    <View style={styles.barFillRow}>
+                  <View className="h-2.5 bg-[#e9ecef] rounded-[5px] overflow-hidden">
+                    <View className="flex-row h-full rounded-[5px] overflow-hidden">
                       <View
-                        style={[
-                          styles.barFill,
-                          {
-                            width: `${actualPercent}%`,
-                            backgroundColor: category.color,
-                          },
-                        ]}
+                        className="h-full"
+                        style={{
+                          width: `${actualPercent}%`,
+                          backgroundColor: category.color,
+                        }}
                       />
                       <View
-                        style={[
-                          styles.barFillPlanned,
-                          {
-                            width: `${percent - actualPercent}%`,
-                            backgroundColor: category.color,
-                            opacity: 0.5,
-                          },
-                        ]}
+                        className="h-full opacity-50"
+                        style={{
+                          width: `${percent - actualPercent}%`,
+                          backgroundColor: category.color,
+                        }}
                       />
                     </View>
                   </View>
 
-                  <Text style={[styles.remaining, afterPlanned < 0 && styles.overBudget]}>
+                  <Text
+                    className={`mt-2 text-[13px] ${
+                      afterPlanned < 0 ? 'text-[#dc3545] font-semibold' : 'text-[#495057]'
+                    }`}
+                  >
                     {afterPlanned >= 0
                       ? `${formatCurrency(remaining)} left (${formatCurrency(afterPlanned)} after planned)`
                       : `${formatCurrency(Math.abs(afterPlanned))} over budget after planned`}
@@ -288,146 +289,3 @@ export default function BudgetView({
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  field: {
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    backgroundColor: '#f8f9fa',
-  },
-  button: {
-    backgroundColor: '#007bff',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  empty: {
-    color: '#6c757d',
-    textAlign: 'center',
-    marginTop: 32,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  categoryName: {
-    fontSize: 16,
-    fontWeight: '600',
-    flex: 1,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  actionButton: {
-    padding: 4,
-  },
-  actionText: {
-    fontSize: 13,
-    color: '#007bff',
-    fontWeight: '600',
-  },
-  dangerText: {
-    color: '#dc3545',
-  },
-  amounts: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  amountLabel: {
-    fontSize: 12,
-    color: '#6c757d',
-  },
-  barBackground: {
-    height: 10,
-    backgroundColor: '#e9ecef',
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  barFillRow: {
-    flexDirection: 'row',
-    height: '100%',
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: '100%',
-  },
-  barFillPlanned: {
-    height: '100%',
-  },
-  remaining: {
-    marginTop: 8,
-    fontSize: 13,
-    color: '#495057',
-  },
-  overBudget: {
-    color: '#dc3545',
-    fontWeight: '600',
-  },
-  editActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  smallButton: {
-    backgroundColor: '#007bff',
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    flex: 1,
-  },
-  smallButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  secondarySmallButton: {
-    backgroundColor: '#e9ecef',
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    flex: 1,
-  },
-  secondarySmallButtonText: {
-    color: '#495057',
-    fontWeight: '600',
-  },
-});

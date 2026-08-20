@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { BudgetCategory, Transaction } from '../types';
 import { formatCurrency, formatDate } from '../utils/csv';
 
@@ -15,23 +15,32 @@ export default function TransactionList({ transactions, categories }: Transactio
   const getCategoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? id;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Transactions</Text>
+    <ScrollView className="flex-1 bg-[#f8f9fa]" contentContainerClassName="p-4 pb-8">
+      <Text className="text-2xl font-bold mb-4">Transactions</Text>
       {sorted.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>No transactions imported yet.</Text>
-          <Text style={styles.emptySubtext}>Use the Import tab to add transactions manually.</Text>
+        <View className="bg-white rounded-xl p-8 items-center">
+          <Text className="text-base text-[#6c757d]">No transactions imported yet.</Text>
+          <Text className="text-[13px] text-[#adb5bd] mt-2 text-center">
+            Use the Import tab to add transactions manually.
+          </Text>
         </View>
       ) : (
         sorted.map((t) => (
-          <View key={t.id} style={styles.row}>
-            <View style={styles.info}>
-              <Text style={styles.description}>{t.description}</Text>
-              <Text style={styles.meta}>
+          <View
+            key={t.id}
+            className="bg-white rounded-xl p-3.5 mb-2 flex-row justify-between items-center"
+          >
+            <View className="flex-1 mr-3">
+              <Text className="text-[15px] font-semibold">{t.description}</Text>
+              <Text className="text-xs text-[#6c757d] mt-0.5">
                 {formatDate(t.date)} • {getCategoryName(t.categoryId)} • {t.source}
               </Text>
             </View>
-            <Text style={[styles.amount, t.type === 'income' ? styles.income : styles.expense]}>
+            <Text
+              className={`text-[15px] font-bold ${
+                t.type === 'income' ? 'text-[#28a745]' : 'text-[#dc3545]'
+              }`}
+            >
               {t.type === 'income' ? '+' : '-'}
               {formatCurrency(t.amount)}
             </Text>
@@ -41,67 +50,3 @@ export default function TransactionList({ transactions, categories }: Transactio
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  empty: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 32,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#6c757d',
-  },
-  emptySubtext: {
-    fontSize: 13,
-    color: '#adb5bd',
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  row: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  info: {
-    flex: 1,
-    marginRight: 12,
-  },
-  description: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  meta: {
-    fontSize: 12,
-    color: '#6c757d',
-    marginTop: 2,
-  },
-  amount: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  income: {
-    color: '#28a745',
-  },
-  expense: {
-    color: '#dc3545',
-  },
-});

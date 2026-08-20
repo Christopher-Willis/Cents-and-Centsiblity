@@ -3,7 +3,6 @@ import {
   Alert,
   Platform,
   ScrollView,
-  StyleSheet,
   Switch,
   Text,
   TextInput,
@@ -345,25 +344,29 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
   const getCategoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? id;
 
   const renderForm = () => (
-    <View style={styles.formCard}>
-      <Text style={styles.label}>Bill name</Text>
+    <View className="bg-white rounded-xl p-4 mb-4 border border-[#e9ecef]">
+      <Text className="text-[13px] font-semibold text-[#495057] mb-1">Bill name</Text>
       <TextInput
-        style={styles.field}
+        className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
         value={name}
         onChangeText={setName}
         placeholder="Rent, electricity, etc."
       />
 
-      <Text style={styles.label}>Budget group</Text>
-      <View style={styles.categoryRow}>
+      <Text className="text-[13px] font-semibold text-[#495057] mb-1">Budget group</Text>
+      <View className="flex-row flex-wrap gap-2 mb-3">
         {expenseCategories.map((category) => (
           <TouchableOpacity
             key={category.id}
-            style={[styles.categoryChip, categoryId === category.id && styles.categoryActive]}
+            className={`border border-[#dee2e6] rounded-2xl py-1.5 px-3 ${
+              categoryId === category.id ? 'bg-[#007bff] border-[#007bff]' : ''
+            }`}
             onPress={() => setCategoryId(category.id)}
           >
             <Text
-              style={[styles.categoryText, categoryId === category.id && styles.categoryActiveText]}
+              className={`text-[#495057] text-[13px] ${
+                categoryId === category.id ? 'text-white font-semibold' : ''
+              }`}
             >
               {category.name}
             </Text>
@@ -371,42 +374,44 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
         ))}
       </View>
 
-      <Text style={styles.label}>Planned amount</Text>
+      <Text className="text-[13px] font-semibold text-[#495057] mb-1">Planned amount</Text>
       <TextInput
-        style={styles.field}
+        className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
         value={plannedAmount}
         onChangeText={setPlannedAmount}
         placeholder="0.00"
         keyboardType="decimal-pad"
       />
 
-      <View style={styles.switchRow}>
-        <Text style={styles.label}>Recurring monthly</Text>
+      <View className="flex-row justify-between items-center mb-3">
+        <Text className="text-[13px] font-semibold text-[#495057] mb-1">Recurring monthly</Text>
         <Switch value={recurring} onValueChange={setRecurring} />
       </View>
 
       {recurring ? (
         <>
-          <Text style={styles.label}>Due day of month</Text>
+          <Text className="text-[13px] font-semibold text-[#495057] mb-1">Due day of month</Text>
           <TextInput
-            style={styles.field}
+            className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
             value={dueDay}
             onChangeText={setDueDay}
             placeholder="1-31"
             keyboardType="number-pad"
           />
 
-          <Text style={styles.label}>End date (optional)</Text>
+          <Text className="text-[13px] font-semibold text-[#495057] mb-1">End date (optional)</Text>
           <TextInput
-            style={styles.field}
+            className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
             value={endDate}
             onChangeText={setEndDate}
             placeholder="YYYY-MM-DD"
           />
 
-          <Text style={styles.label}>Late day offset (optional)</Text>
+          <Text className="text-[13px] font-semibold text-[#495057] mb-1">
+            Late day offset (optional)
+          </Text>
           <TextInput
-            style={styles.field}
+            className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
             value={lateDay}
             onChangeText={setLateDay}
             placeholder="Days after due date"
@@ -415,17 +420,19 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
         </>
       ) : (
         <>
-          <Text style={styles.label}>Due date</Text>
+          <Text className="text-[13px] font-semibold text-[#495057] mb-1">Due date</Text>
           <TextInput
-            style={styles.field}
+            className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
             value={dueDate}
             onChangeText={setDueDate}
             placeholder="YYYY-MM-DD"
           />
 
-          <Text style={styles.label}>Late date (optional)</Text>
+          <Text className="text-[13px] font-semibold text-[#495057] mb-1">
+            Late date (optional)
+          </Text>
           <TextInput
-            style={styles.field}
+            className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
             value={lateDate}
             onChangeText={setLateDate}
             placeholder="YYYY-MM-DD"
@@ -433,73 +440,86 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
         </>
       )}
 
-      <Text style={styles.label}>Actual amount (optional)</Text>
+      <Text className="text-[13px] font-semibold text-[#495057] mb-1">
+        Actual amount (optional)
+      </Text>
       <TextInput
-        style={styles.field}
+        className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
         value={actualAmount}
         onChangeText={setActualAmount}
         placeholder="0.00"
         keyboardType="decimal-pad"
       />
 
-      <Text style={styles.label}>Paid date (optional)</Text>
+      <Text className="text-[13px] font-semibold text-[#495057] mb-1">Paid date (optional)</Text>
       <TextInput
-        style={styles.field}
+        className="border border-[#dee2e6] rounded-lg p-3 mb-3 bg-[#f8f9fa]"
         value={paidDate}
         onChangeText={setPaidDate}
         placeholder="YYYY-MM-DD"
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSave}>
-        <Text style={styles.buttonText}>{editingBillId ? 'Update bill' : 'Save bill'}</Text>
+      <TouchableOpacity
+        className="bg-[#007bff] rounded-lg py-3 px-4 items-center mb-4"
+        onPress={handleSave}
+      >
+        <Text className="text-white font-semibold">
+          {editingBillId ? 'Update bill' : 'Save bill'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Bills</Text>
+    <ScrollView className="flex-1 bg-[#f8f9fa]" contentContainerClassName="p-4 pb-8">
+      <Text className="text-2xl font-bold mb-4">Bills</Text>
 
-      <View style={styles.monthRow}>
-        <TouchableOpacity style={styles.monthButton} onPress={handlePrevMonth}>
-          <Text style={styles.monthButtonText}>&lt;</Text>
+      <View className="flex-row justify-between items-center mb-4">
+        <TouchableOpacity className="p-2" onPress={handlePrevMonth}>
+          <Text className="text-lg font-bold text-[#007bff]">&lt;</Text>
         </TouchableOpacity>
-        <Text style={styles.monthText}>{monthName(year, month)}</Text>
-        <TouchableOpacity style={styles.monthButton} onPress={handleNextMonth}>
-          <Text style={styles.monthButtonText}>&gt;</Text>
+        <Text className="text-lg font-semibold">{monthName(year, month)}</Text>
+        <TouchableOpacity className="p-2" onPress={handleNextMonth}>
+          <Text className="text-lg font-bold text-[#007bff]">&gt;</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Planned</Text>
-          <Text style={styles.summaryAmount}>{formatCurrency(totals.planned)}</Text>
+      <View className="flex-row gap-3 mb-4">
+        <View className="flex-1 bg-white rounded-xl p-3 border border-[#e9ecef] items-center">
+          <Text className="text-xs text-[#6c757d] mb-1">Planned</Text>
+          <Text className="text-lg font-bold">{formatCurrency(totals.planned)}</Text>
         </View>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Paid</Text>
-          <Text style={styles.summaryAmount}>{formatCurrency(totals.paid)}</Text>
+        <View className="flex-1 bg-white rounded-xl p-3 border border-[#e9ecef] items-center">
+          <Text className="text-xs text-[#6c757d] mb-1">Paid</Text>
+          <Text className="text-lg font-bold">{formatCurrency(totals.paid)}</Text>
         </View>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={toggleForm}>
-        <Text style={styles.buttonText}>{showForm ? 'Cancel' : 'Add bill'}</Text>
+      <TouchableOpacity
+        className="bg-[#007bff] rounded-lg py-3 px-4 items-center mb-4"
+        onPress={toggleForm}
+      >
+        <Text className="text-white font-semibold">{showForm ? 'Cancel' : 'Add bill'}</Text>
       </TouchableOpacity>
 
       {showForm && renderForm()}
 
-      <Text style={styles.sectionTitle}>Upcoming bills</Text>
+      <Text className="text-lg font-semibold mb-3">Upcoming bills</Text>
       {monthBills.length === 0 ? (
-        <Text style={styles.empty}>No bills for this month.</Text>
+        <Text className="text-[#6c757d] text-center mt-4">No bills for this month.</Text>
       ) : (
         monthBills.map(({ bill, dueDate }) => {
           const status = getStatus(bill, dueDate);
           const lateDateString = getBillLateDate(bill, dueDate);
           return (
-            <View key={`${bill.id}-${dueDate}`} style={styles.billCard}>
-              <View style={styles.billHeader}>
-                <View style={styles.billInfo}>
-                  <Text style={styles.billName}>{bill.name}</Text>
-                  <Text style={styles.billMeta}>
+            <View
+              key={`${bill.id}-${dueDate}`}
+              className="bg-white rounded-xl p-4 mb-3 border border-[#e9ecef]"
+            >
+              <View className="flex-row justify-between items-start mb-2">
+                <View className="flex-1 mr-3">
+                  <Text className="text-base font-semibold flex-wrap">{bill.name}</Text>
+                  <Text className="text-xs text-[#6c757d] mt-0.5">
                     {getCategoryName(bill.categoryId)} • Due{' '}
                     {formatLocalDate(parseLocalDate(dueDate))}
                     {lateDateString
@@ -510,41 +530,49 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
                       : ''}
                   </Text>
                 </View>
-                <View style={[styles.statusBadge, { borderColor: status.color }]}>
-                  <Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text>
+                <View
+                  className="border rounded-xl py-0.5 px-2 self-start mt-0.5 shrink-0"
+                  style={{ borderColor: status.color }}
+                >
+                  <Text className="text-xs font-semibold" style={{ color: status.color }}>
+                    {status.label}
+                  </Text>
                 </View>
               </View>
 
-              <View style={styles.billAmounts}>
-                <Text style={styles.billAmount}>Planned: {formatCurrency(bill.plannedAmount)}</Text>
+              <View className="flex-row gap-4 mb-3">
+                <Text className="text-sm text-[#495057]">
+                  Planned: {formatCurrency(bill.plannedAmount)}
+                </Text>
                 {bill.actualAmount !== undefined && (
-                  <Text style={styles.billAmount}>Actual: {formatCurrency(bill.actualAmount)}</Text>
+                  <Text className="text-sm text-[#495057]">
+                    Actual: {formatCurrency(bill.actualAmount)}
+                  </Text>
                 )}
               </View>
 
-              <View style={styles.billActions}>
+              <View className="flex-row gap-2">
                 <TouchableOpacity
-                  style={[
-                    styles.smallButton,
-                    status.label === 'Paid' ? styles.paidButton : styles.unpaidButton,
-                  ]}
+                  className={`rounded-md py-1.5 px-2.5 ${
+                    status.label === 'Paid' ? 'bg-[#6c757d]' : 'bg-[#28a745]'
+                  }`}
                   onPress={() => handleMarkPaid(bill, dueDate)}
                 >
-                  <Text style={styles.smallButtonText}>
+                  <Text className="text-xs font-semibold text-white">
                     {status.label === 'Paid' ? 'Mark unpaid' : 'Mark paid'}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.secondarySmallButton}
+                  className="rounded-md py-1.5 px-2.5 bg-[#e9ecef]"
                   onPress={() => handleEdit(bill)}
                 >
-                  <Text style={styles.secondarySmallButtonText}>Edit</Text>
+                  <Text className="text-[#495057] text-xs font-semibold">Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.dangerSmallButton}
+                  className="rounded-md py-1.5 px-2.5 bg-[#f8d7da]"
                   onPress={() => handleDelete(bill.id)}
                 >
-                  <Text style={styles.dangerSmallButtonText}>Delete</Text>
+                  <Text className="text-[#dc3545] text-xs font-semibold">Delete</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -554,227 +582,3 @@ export default function BillsView({ bills, categories, onBillsChange }: BillsVie
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  monthRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  monthButton: {
-    padding: 8,
-  },
-  monthButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#007bff',
-  },
-  monthText: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  summaryCard: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    alignItems: 'center',
-  },
-  summaryLabel: {
-    fontSize: 12,
-    color: '#6c757d',
-    marginBottom: 4,
-  },
-  summaryAmount: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  button: {
-    backgroundColor: '#007bff',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  formCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#495057',
-    marginBottom: 4,
-  },
-  field: {
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    backgroundColor: '#f8f9fa',
-  },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  categoryChip: {
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  categoryActive: {
-    backgroundColor: '#007bff',
-    borderColor: '#007bff',
-  },
-  categoryText: {
-    color: '#495057',
-    fontSize: 13,
-  },
-  categoryActiveText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  empty: {
-    color: '#6c757d',
-    textAlign: 'center',
-    marginTop: 16,
-  },
-  billCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  billHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  billInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  billName: {
-    fontSize: 16,
-    fontWeight: '600',
-    flexWrap: 'wrap',
-  },
-  billMeta: {
-    fontSize: 12,
-    color: '#6c757d',
-    marginTop: 2,
-  },
-  statusBadge: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    alignSelf: 'flex-start',
-    marginTop: 2,
-    flexShrink: 0,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  billAmounts: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 12,
-  },
-  billAmount: {
-    fontSize: 14,
-    color: '#495057',
-  },
-  billActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  smallButton: {
-    borderRadius: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-  },
-  smallButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  unpaidButton: {
-    backgroundColor: '#28a745',
-  },
-  paidButton: {
-    backgroundColor: '#6c757d',
-  },
-  secondarySmallButton: {
-    borderRadius: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: '#e9ecef',
-  },
-  secondarySmallButtonText: {
-    color: '#495057',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  dangerSmallButton: {
-    borderRadius: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: '#f8d7da',
-  },
-  dangerSmallButtonText: {
-    color: '#dc3545',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});
